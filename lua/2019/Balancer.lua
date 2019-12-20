@@ -26,7 +26,7 @@ local function On_Contam_chanceShift(origin,imaginator)
         else
             local shift = GetNearest(origin, "Shift", 2)
             if shift then 
-                whip:SetOrigin(origin)
+                shift:SetOrigin(origin)
                 return 
             end
         end
@@ -40,7 +40,7 @@ local function On_Contam_chanceShade(origin,imaginator)
         else
             local shade = GetNearest(origin, "Shade", 2)
             if shade then 
-                whip:SetOrigin(origin)
+                shade:SetOrigin(origin)
                 return 
             end
         end
