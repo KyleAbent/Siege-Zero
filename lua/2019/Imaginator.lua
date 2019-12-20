@@ -265,7 +265,7 @@ local function ManageRoboticFactories()
             robo:SetResearching(techNode, robo)
         end
 
-        if robo:GetTechId() == kTechId.ARCRoboticsFactory then
+        if robo:GetTechId() == kTechId.ARCRoboticsFactory and not robo.open then
             table.insert(ARCRobo, robo)
         end --ugh
 
@@ -337,7 +337,7 @@ local function GetMarineSpawnList(self)
     ----------------------------------------------------------------------------------------------------
     --timecheck to prevent 3 CC in one room w/o checking for such definition
     local  CommandStation = #GetEntitiesForTeam( "CommandStation", 1 )
-    local timecheck = true--( Shared.GetTime() - GetGamerules():GetGameStartTime() ) >= 120
+    local timecheck = true --( Shared.GetTime() - GetGamerules():GetGameStartTime() ) >= 60 --true
     if timecheck and CommandStation < 3 then
         table.insert(tospawn, kTechId.CommandStation)
     end
@@ -440,7 +440,10 @@ function Imaginator:MarineConstructs()
 
 return
 end
-function Imaginator:ShowWarningForToggle(bool,team)
+function Imaginator:ShowWarningForToggleMarines(bool)
+
+end
+function Imaginator:ShowWarningForToggleAliens(bool)
 
 end
 function Imaginator:Imaginations() 
@@ -450,18 +453,18 @@ function Imaginator:Imaginations()
     
     if not team1Commander and not self.marineenabled then
         self.marineenabled = true
-        self:ShowWarningForToggle(true,"Marine")
+        self:ShowWarningForToggleMarines(true)
     elseif team1Commander and self.marineenabled then
         self.marineenabled = false   
-        self:ShowWarningForToggle(false,"Marine")
+        self:ShowWarningForToggleMarines(false)
     end
     
     if not team2Commander and not self.alienenabled then
         self.alienenabled = true
-        self:ShowWarningForToggle(true,"Alien")
+        self:ShowWarningForToggleAliens(true)
     elseif team2Commander and self.alienenabled then
         self.alienenabled = false   
-        self:ShowWarningForToggle(false,"Alien")
+        self:ShowWarningForToggleAliens(false)
     end
     
     if self.marineenabled then
@@ -620,8 +623,8 @@ function Imaginator:hiveSpawn()  --gonna be bad for domesiege, and trainsiege, a
             for _, techpoint in ientitylist(Shared.GetEntitiesWithClassname("TechPoint")) do
                 if techpoint:GetAttached() == nil then 
                     local hive =  techpoint:SpawnCommandStructure(2) 
-                    if hive then hive:GetTeam():SetTeamResources(hive:GetTeam():GetTeamResources() - 40) //The only map that does this, eh?
-                    break
+                    if hive then hive:GetTeam():SetTeamResources(hive:GetTeam():GetTeamResources() - 40) //The only area which deducts tres, eh?
+                        break
                     end
                 end
             end
@@ -633,6 +636,7 @@ function Imaginator:ActualAlienFormula(cystonly)
     self:hiveSpawn()
     local con = GetConductor()
     con:ManageDrifters() 
+    //ManageCysts - look for struct without infestation, doChain for one then break
     con:ManageCrags() 
     con:ManageShifts()
     con:ManageWhips()

@@ -1,47 +1,22 @@
 //Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19") 
 Script.Load("lua/ResearchMixin.lua")
 Script.Load("lua/RecycleMixin.lua")
---Script.Load("lua/2019/LevelsMixin.lua")
 
 
 local networkVars = 
 
 {
-  level = "integer",
 
 }
 AddMixinNetworkVars(ResearchMixin, networkVars)
 AddMixinNetworkVars(RecycleMixin, networkVars)
---AddMixinNetworkVars(LevelsMixin, networkVars)
 
 local origcreate = ARC.OnCreate
 function ARC:OnCreate()
     InitMixin(self, ResearchMixin)
     InitMixin(self, RecycleMixin)
-   --   InitMixin(self, LevelsMixin)
     origcreate(self)
-    self.level = 0
 end
-  function ARC:GetUnitNameOverride(viewer)
-    local unitName = GetDisplayName(self)   
-    unitName = string.format(Locale.ResolveString("%s (Lvl %s"), self:GetClassName(), self.level)
-    return unitName
-end 
-    /*
-    
-    function ARC:GetMaxLevel()
-    return 10
-    end
-    
-    function ARC:OnAddXp()
-   --  local dmg = kARCDamage
-     self.kAttackDamage = kARCDamage * (self.level/100) + kARCDamage --difference between self.kattack and arc.kattack :P
-     end
-
-    function ARC:GetAddXPAmount()
-    return 0.25--0.25
-    end
-    */
 
 
 if Server then
@@ -127,6 +102,7 @@ end
 function ARC:SpecificRules(where)
 local moving = self.mode == ARC.kMode.Moving    
 local isSiegeOpen =  GetSiegeDoorOpen() 
+Print("SpecificRules isSiegeOpen is %s", isSiegeOpen)
         
 local attacking = self.deployMode == ARC.kDeployMode.Deployed
 
@@ -137,10 +113,6 @@ local shouldmove = not shouldstop and not moving and not inradius
 local shouldstop = moving and shouldstop
 local shouldattack = inradius and not attacking 
 local shouldundeploy = attacking and not inradius and not moving
-
-if isSiegeOpen then
-  self.level = Clamp(self.level + .01, .01, 30)
-end
   
   if moving then
     

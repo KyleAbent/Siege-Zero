@@ -144,13 +144,18 @@ Shared.ConsoleCommand("sh_csay Front Door(s) now open!!!!")
 self:NotifyTimer( nil, "Front Door(s) now open!!!!", true)
 end
 ------------------------------------------------------------
-function Plugin:OnShowWarningForToggle(bool,team) 
-self:NotifyAutoComm( nil, "AutoComm for team %s has been set to %s", bool, team, true)
+function Plugin:OnShowWarningForToggleMarines(bool) 
+self:NotifyAutoComm( nil, "AutoComm for Marines has been set to %s", bool, true)
+end
+------------------------------------------------------------
+function Plugin:OnShowWarningForToggleAliens(bool) 
+self:NotifyAutoComm( nil, "AutoComm for team Aliens has been set to %s", bool, true)
 end
 ------------------------------------------------------------
 Shine.Hook.SetupClassHook( "NS2Gamerules", "DisplayFront", "OnFront", "PassivePost" ) 
 Shine.Hook.SetupClassHook( "NS2Gamerules", "DisplaySiege", "OnSiege", "PassivePost" ) 
-Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggle", "OnShowWarningForToggle", "PassivePost" )
+Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleMarines", "OnShowWarningForToggleMarines", "PassivePost" )
+Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleAliens", "OnShowWarningForToggleAliens", "PassivePost" )
 ------------------------------------------------------------
 local function AddFrontTimer(who,NowToFront)
   if not NowToFront then 

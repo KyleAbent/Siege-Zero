@@ -2,17 +2,80 @@
 --http://twitch.tv/kyleabent
 --https://github.com/KyleAbent/
 if Server then
-    function Conductor:CountUnBuiltNodes()
-        local unbuilt = 0
-            for index, powerpoint in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
-                if powerpoint:GetIsBuilt() and powerpoint:GetIsDisabled() then
-                    unbuilt = unbuilt + 1
-                end
+    
+local function On_Contam_chanceWhip(origin,imaginator)
+    //for loop 3x? lol
+    random = math.random(1,100)
+    if random <= 10 then
+        if imaginator.activeWhips < 13 then
+            local entity = CreateEntityForTeam(kTechId.Whip, origin, 2)
+        else
+            local whip = GetNearest(origin, "Whip", 2)
+            if whip  then 
+                whip:SetOrigin(origin)
+                return 
             end
-        return unbuilt
+        end
     end
-
-    function Conductor:FirePhaseCannons(powerpoint)
+end
+local function On_Contam_chanceShift(origin,imaginator)
+    random = math.random(1,100)
+    if random <= 10 then
+        if imaginator.activeShifts < 14 then
+            local entity = CreateEntityForTeam(kTechId.Shift, origin, 2)
+        else
+            local shift = GetNearest(origin, "Shift", 2)
+            if shift then 
+                whip:SetOrigin(origin)
+                return 
+            end
+        end
+     end
+end
+local function On_Contam_chanceShade(origin,imaginator)
+    random = math.random(1,100)
+    if random <= 10 then
+        if imaginator.activeShades < 13 then
+            local entity = CreateEntityForTeam(kTechId.Shade, origin, 2)
+        else
+            local shade = GetNearest(origin, "Shade", 2)
+            if shade then 
+                whip:SetOrigin(origin)
+                return 
+            end
+        end
+    end
+end
+local function On_Contam_chanceCrag(origin,imaginator)
+    random = math.random(1,100)
+    if random <= 10 then
+        if imaginator.activeCrags < 13 then
+            local entity = CreateEntityForTeam(kTechId.Crag, origin, 2)
+        else
+            local crag = GetNearest(origin, "Crag", 2)
+            if crag then 
+                crag:SetOrigin(origin)
+                return 
+            end
+        end
+    end
+end
+local function On_Contam_chanceHydra(origin)
+    random = math.random(1,100)
+    if random <= 10 then
+        local hydras = #GetEntitiesForTeam( "Hydra", 2 )
+        if hydras < 13 then
+            local entity = CreateEntityForTeam(kTechId.Hydra, origin, 2)
+        end
+    end
+end
+local function On_Contam_chanceRupture(origin)
+    random = math.random(1,100)
+    if random <= 30 then
+       local entity = CreateEntityForTeam(kTechId.Hydra, origin, 2)
+    end
+end
+    function Conductor:SpawnContamination(powerpoint)
 
         if not GetHasThreeHives() or not GetFrontDoorOpen() then
             return
@@ -23,8 +86,17 @@ if Server then
         local egg = CreateEntity(Egg.kMapName, FindFreeSpace(origin, 1, 8), 2)
         egg:SetHive(GetRandomHive())
 
-        if GetSiegeDoorOpen() then
-            local random = math.random(1,100)
+        local imaginator = GetImaginator()
+        On_Contam_chanceWhip(origin,imaginator)
+        On_Contam_chanceShift(origin,imaginator)
+        On_Contam_chanceShade(origin,imaginator)
+        On_Contam_chanceCrag(origin,imaginator)
+        On_Contam_chanceHydra(origin)
+        On_Contam_chanceRupture(origin)
+        
+        local random = math.random(1,100)
+        if GetSiegeDoorOpen() or random <= 10 then
+            random = math.random(1,100)
             if random <= 10 then
                 --chance it?
                 for index, bot in ipairs(GetEntitiesForTeam("Player", 2)) do
@@ -37,6 +109,7 @@ if Server then
                 end
             end
         end
+        
     end
 
     local function GetDroppackSoundName(techId)
@@ -71,11 +144,11 @@ if Server then
             elseif  weapon and weapon.GetAmmoFraction and weapon:GetAmmoFraction() <= .65 and #ammopacks <= 4  then
                 PackRulesHere(who, who:GetOrigin(), kTechId.AmmoPack, self)
             elseif who:GetIsInCombat() then
-                random = math.random(1,2)
+                random = math.random(1,3)//from 2 to 3
             end
             if random == 1 then
                 PackRulesHere(who, who:GetOrigin(), kTechId.CatPack, self)
-            else
+            elseif random == 2 then//from else to if random == 2 (trying this instead of having a break (This currently does all marines at once lol) )
                 who:ActivateNanoShield()
             end
     end

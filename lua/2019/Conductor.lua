@@ -32,7 +32,19 @@ local inradius = #GetEntitiesWithinRange("Hive", self.arcSiegeOrig, ARC.kFireRan
             Print("Found hiveclosest")
             local origin  = FindArcHiveSpawn(siegepower:GetOrigin())
             if origin == nil then
-                print("ERROR! AH! Unable to find Arc placement near siege.")
+                print("[1]ERROR! AH! Unable to find Arc placement near siege.")
+                origin  = FindArcHiveSpawn(hiveclosest:GetOrigin())
+            end
+            if origin == nil then
+                print("[2]ERROR! AH! Unable to find Arc placement near siege.")
+                local avg = siegepower:GetOrigin().x + hiveclosest:GetOrigin().x
+                avg = avg / 2
+                local toLook = siegepower:GetOrigin()
+                      toLook.x = avg
+                origin  = FindArcHiveSpawn(toLook)
+            end
+            if origin == nil then
+                print("[3]ERROR! AH! Unable to find Arc placement near siege.")
                 return
             end
             inRangeofOrigin = #GetEntitiesWithinRange("Hive", origin, ARC.kFireRange - 3) >= 1
@@ -47,21 +59,22 @@ end
 if Server then
     function Conductor:OnUpdate(deltatime)
         imaginator = GetImaginator()
-        print("imaginator:GetIsMarineEnabled() is %s",imaginator:GetIsMarineEnabled())
-        print("imaginator:GetIsAlienEnabled() is %s",imaginator:GetIsAlienEnabled())
+        //print("imaginator:GetIsMarineEnabled() is %s",imaginator:GetIsMarineEnabled())
+        //print("imaginator:GetIsAlienEnabled() is %s",imaginator:GetIsAlienEnabled())
         if imaginator:GetIsMarineEnabled() and GetSiegeDoorOpen() and self.arcSiegeOrig == self:GetOrigin() then
             print("Conductor:OnUpdate AAAAAAAAAAA")
             self:GetArcSpotForSiege()
         end
 
         if (imaginator:GetIsMarineEnabled() or imaginator:GetIsAlienEnabled()) and not self.timeLastAutomations or self.timeLastAutomations + 8 <= Shared.GetTime() then
-            print("Conductor:OnUpdate BBBBBBBBBBB")
+            //print("Conductor:OnUpdate BBBBBBBBBBB")
+            self:DoMist()
             self:Automations()
             self.timeLastAutomations = Shared.GetTime()
         end
 
         if imaginator:GetIsAlienEnabled() and not self.phaseCannonTime or self.phaseCannonTime + math.random(23,69) <= Shared.GetTime() then
-            self:PCTimer()
+            self:ContaminationSpawnTimer()
             self.phaseCannonTime = Shared.GetTime()
         end
 
@@ -69,7 +82,7 @@ if Server then
 end//Server
 
 
-local function FirePCAllBuiltRooms(self)
+local function ChanceContaminationSpawn(self)
 //Probably a more fair version of this rather than DDOS? LOL
     local onechance = math.random(1,2)
     --if self:GetIsPhaseFourBoolean() then
@@ -77,44 +90,44 @@ local function FirePCAllBuiltRooms(self)
         local chance = math.random(1,100)
         if chance >= 70 then
             local power = GetRandomActivePower()
-            if power then  self:FirePhaseCannons(power)
+            if power then  self:SpawnContamination(power)
                 return
             end --if not power then
             else
                 local cc = GetRandomCC()
-                if cc then  self:FirePhaseCannons(cc)
+                if cc then  self:SpawnContamination(cc)
                     return
                  end
         end
     else
-    --elseif self:GetIsPhaseTwoBoolean() then
-    -- local cc = GetRandomCC()
-    --  if cc then  self:FirePhaseCannons(cc) return end
-    local power = GetRandomActivePower()
-    if power then
-      self:FirePhaseCannons(power)
-       return
-     end
+        --elseif self:GetIsPhaseTwoBoolean() then
+        -- local cc = GetRandomCC()
+        --  if cc then  self:SpawnContamination(cc) return end
+        local power = GetRandomActivePower()
+        if power then
+          self:SpawnContamination(power)
+           return
+         end
+    end
+
+    local built = {}
+    for index, powerpoint in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
+        if not GetIsPointInMarineBase(powerpoint:GetOrigin()) and powerpoint:GetIsBuilt() and not powerpoint:GetIsDisabled() then
+            table.insert(built, powerpoint)
+        end
+    end
+    
+    if #built == 0 then return end
+    local random = table.random(built)
+    self:SpawnContamination(random)
 end
 
-local built = {}
-for index, powerpoint in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
-if not GetIsPointInMarineBase(powerpoint:GetOrigin()) and powerpoint:GetIsBuilt() and not powerpoint:GetIsDisabled() then
-table.insert(built, powerpoint)
-end
-end
-if #built == 0 then return end
-local random = table.random(built)
-self:FirePhaseCannons(random)
-end
 
-
-function Conductor:PCTimer()
-         FirePCAllBuiltRooms(self)
+function Conductor:ContaminationSpawnTimer()
+         ChanceContaminationSpawn(self)
 end
 
 function Conductor:Automations()
-              self:DoMist()
             --  self:MaintainHiveDefense()
               self:HandoutMarineBuffs() --This function is missing...???
             --  self:CheckAndMaybeBuildMac()
@@ -130,6 +143,9 @@ local function PowerPointStuff(who, self)
     local powerpoint =  location and GetPowerPointForLocation(location.name)
     local imaginator = GetImaginator()
     if powerpoint ~= nil then
+    Print("PowerPointStuff imaginator:GetIsMarineEnabled() is %s", imaginator:GetIsMarineEnabled())
+    Print("PowerPointStuff powerpoint:GetIsBuilt() is %s", powerpoint:GetIsBuilt() )
+    Print("PowerPointStuff powerpoint:GetIsDisabled() is %s", powerpoint:GetIsDisabled())
         if imaginator:GetIsMarineEnabled() and ( powerpoint:GetIsBuilt() and not powerpoint:GetIsDisabled() ) then
             print("PowerPointStuff return 1")
             return 1
@@ -164,11 +180,9 @@ end
 local function Envision(self,who, which)
     local imaginator = GetImaginator()
    if which == 1 and imaginator:GetIsMarineEnabled() then
-    print("Envision AAAAAAAAAAAA")
      Touch(who, who:GetOrigin(), kTechId.Extractor, 1)
    elseif which == 2 and imaginator:GetIsAlienEnabled() then
-    print("Envision BBBBBBBBBBBBB")
-     Touch(who, who:GetOrigin(), kTechId.Harvester, 2)
+    Touch(who, who:GetOrigin(), kTechId.Harvester, 2)
     end
 end
 
@@ -209,13 +223,6 @@ local function BuildAllNodes(self)
           end
 
 end
-local function DeleteResNodes(self)
-
-          for _, resnode in ientitylist(Shared.GetEntitiesWithClassname("ResourcePoint")) do
-               DestroyEntity(resnode)
-          end
-
-end
 
 local function BuildAllNodes(self)
 
@@ -230,20 +237,9 @@ local function BuildAllNodes(self)
 
 end
 
-/*
-local function DeleteResNodes(self)
-//Why do I do this again? LOL
-          for _, resnode in ientitylist(Shared.GetEntitiesWithClassname("ResourcePoint")) do
-               DestroyEntity(resnode)
-          end
-
-end
-*/
-
 function Conductor:OnRoundStart()
            if Server then
               BuildAllNodes(self)
-              //DeleteResNodes(self) // Not sure why I do this one LOL
               self:SpawnInitialStructures()
             end
 end
@@ -263,14 +259,15 @@ function Conductor:ManageArcs()
     local where = nil
 
     if GetSiegeDoorOpen() and self.arcSiegeOrig ~= self:GetOrigin() then
+        print("ManageArcs SiegeDoorOpen and arcSiegeOrig origin is at conductor origin")
         where = self.arcSiegeOrig
     end
     
-    if where == nil then
+    if where == self:GetOrigin() then
         where = FindFreeSpace(GetRandomActivePower():GetOrigin(), math.random(2,4), math.random(8,24), false ) 
     end
     
-    if where == nil then
+    if where == self:GetOrigin()  then
         print("Could not find spot for ARC!")
         return
     end
@@ -282,13 +279,10 @@ function Conductor:ManageArcs()
 end
 
 local function ManagePlayerWeld(who, where)
-
     local player =  GetNearest(who:GetOrigin(), "Marine", 1, function(ent) return ent:GetIsAlive() end)
-
     if player then
         who:GiveOrder(   kTechId.FollowAndWeld, player:GetId(), player:GetOrigin(), nil, false, false)
     end
-
 end
 
 function Conductor:ManageMacs()
@@ -313,12 +307,10 @@ function Conductor:ManageMacs()
 
 end
 
-
 function Conductor:ManageCrags()
 
     local random = math.random(1,4)
     if not GetFrontDoorOpen() then return end
-
 
     for i = 1, random do --maybe time delay ah
         local hive = GetRandomHive()
@@ -333,6 +325,7 @@ function Conductor:ManageCrags()
             if power then
                 nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
             end
+            //Maybe some teammate in combat? and once not moving then doChain ?
         end 
     end  
 end
@@ -352,7 +345,6 @@ function Conductor:ManageShifts()
         end 
     end  
 end
-
 
 function Conductor:ManageWhips()
 

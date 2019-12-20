@@ -107,7 +107,7 @@ function GetASiegeLocation()
     local siegeloc = nil
 
     for _, loc in ientitylist(Shared.GetEntitiesWithClassname("Location")) do
-        if string.find(loc.name, "siege") or string.find(loc.name, "Siege") then
+        if string.find(loc.name, "siege") or string.find(loc.name, "Siege") and GetPowerPointForLocation(loc.name) ~= nil then
         siegeloc = loc
         end
     end
