@@ -195,7 +195,9 @@ function Conductor:AutoBuildResTowers()
   for _, respoint in ientitylist(Shared.GetEntitiesWithClassname("ResourcePoint")) do
         if not respoint:GetAttached() then
             AutoDrop(self, respoint)
-            break//One at a time? lol meh probably not. Huge delay? We'll see. Heh.
+            if GetSetupConcluded() then
+                break//One at a time? lol meh probably not. Huge delay? We'll see. Heh.
+            end
         end
     end
 end
