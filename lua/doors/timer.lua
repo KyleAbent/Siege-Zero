@@ -16,6 +16,7 @@ local networkVars =
    frontOpened = "boolean",
    siegeOpened = "boolean",
    siegeBeaconed = "boolean",
+   //cystBuffPercent = "integer"
 }
 
 function Timer:TimerValues()
@@ -24,6 +25,7 @@ function Timer:TimerValues()
    self.siegeOpened = false
    self.frontOpened = false
    self.siegeBeaconed = false
+   //self.cystBuffPercent = 0
 end
 
 function Timer:OnReset() 
@@ -147,13 +149,22 @@ if Server then
           if gamestarted then 
                if not self.timelasttimerup or self.timelasttimerup + 1 <= Shared.GetTime() then
                     if not self.frontOpened then self:FrontDoorTimer() end
-                    if not self.siegeOpened then self:SiegeDoorTimer() end   
+                    if not self.siegeOpened then self:SiegeDoorTimer() end
+                    //if self.frontOpened and not self.siegeOpened then self:CystBuffTimer() end   
                     self.timelasttimerup = Shared.GetTime()  
                 end
           end
      end
 end
+/*
+function Timer:CystBuffTimer()
+         self.cystBuffPercent = cystBuffPercent + 1
+end
 
+function Timer:GetCystBuff()
+        return self.cystBuffPercent
+end
+*/
 function Timer:SiegeDoorTimer()
        if  self:GetIsSiegeOpen() then
            self:OpenSiegeDoors()

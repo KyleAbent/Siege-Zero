@@ -9,10 +9,16 @@ local function On_Contam_chanceWhip(origin,imaginator)
     if random <= 10 then
         if imaginator.activeWhips < 13 then
             local entity = CreateEntityForTeam(kTechId.Whip, origin, 2)
+            random = math.random(1,100)
+            if random <= 50 then
+                entity:SetConstructionComplete()
+                doChain(entity)
+            end
         else
-            local whip = GetNearest(origin, "Whip", 2)
+            local whip = GetNearest(origin, "Whip", 2, function(ent) return not ent:GetIsInCombat() end)
             if whip  then 
                 whip:SetOrigin(origin)
+                doChain(whip)
                 return 
             end
         end
@@ -23,10 +29,16 @@ local function On_Contam_chanceShift(origin,imaginator)
     if random <= 10 then
         if imaginator.activeShifts < 14 then
             local entity = CreateEntityForTeam(kTechId.Shift, origin, 2)
+            random = math.random(1,100)
+            if random <= 50 then
+                entity:SetConstructionComplete()
+                doChain(entity)
+            end
         else
-            local shift = GetNearest(origin, "Shift", 2)
+            local shift = GetNearest(origin, "Shift", 2, function(ent) return not ent:GetIsInCombat() end)
             if shift then 
                 shift:SetOrigin(origin)
+                doChain(shift)
                 return 
             end
         end
@@ -37,10 +49,16 @@ local function On_Contam_chanceShade(origin,imaginator)
     if random <= 10 then
         if imaginator.activeShades < 13 then
             local entity = CreateEntityForTeam(kTechId.Shade, origin, 2)
+            random = math.random(1,100)
+            if random <= 50 then
+                entity:SetConstructionComplete()
+                doChain(entity)
+            end
         else
-            local shade = GetNearest(origin, "Shade", 2)
+            local shade = GetNearest(origin, "Shade", 2, function(ent) return not ent:GetIsInCombat() end)
             if shade then 
                 shade:SetOrigin(origin)
+                doChain(shade)
                 return 
             end
         end
@@ -51,10 +69,16 @@ local function On_Contam_chanceCrag(origin,imaginator)
     if random <= 10 then
         if imaginator.activeCrags < 13 then
             local entity = CreateEntityForTeam(kTechId.Crag, origin, 2)
+            random = math.random(1,100)
+            if random <= 50 then
+                entity:SetConstructionComplete()
+                doChain(entity)
+            end
         else
-            local crag = GetNearest(origin, "Crag", 2)
+            local crag = GetNearest(origin, "Crag", 2, function(ent) return not ent:GetIsInCombat() end)
             if crag then 
                 crag:SetOrigin(origin)
+                doChain(crag)
                 return 
             end
         end
@@ -82,7 +106,8 @@ end
         end -- although not requiring biomass. Maybe later.
 
         local origin = FindFreeSpace(powerpoint:GetOrigin())
-        CreateEntity(Contamination.kMapName, FindFreeSpace(origin, 1, 8), 2)
+        local contam = CreateEntity(Contamination.kMapName, FindFreeSpace(origin, 1, 8), 2)
+        doChain(contam)
         local egg = CreateEntity(Egg.kMapName, FindFreeSpace(origin, 1, 8), 2)
         egg:SetHive(GetRandomHive())
 
@@ -93,6 +118,7 @@ end
         On_Contam_chanceCrag(origin,imaginator)
         On_Contam_chanceHydra(origin)
         On_Contam_chanceRupture(origin)
+       
         
         local random = math.random(1,100)
         if GetSiegeDoorOpen() or random <= 10 then

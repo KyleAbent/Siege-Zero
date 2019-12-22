@@ -118,18 +118,29 @@ function GetASiegeLocation()
 
     return nil
 end
-function doChain(entity) --I can't believe this works lol
-//Then again it might not be working 100% if chain is always broken up everytime a new one spawns. How irritating. Ugh.?
-    local where = entity:GetOrigin()
-    if GetIsPointOnInfestation(where) then return end
-    local cyst = GetEntitiesWithinRange("Cyst",where, 7)
-    if (#cyst >=1) then return end
+function getHasCystNear(where)
+   local cyst = GetEntitiesWithinRange("Cyst", where, kCystMaxParentRange/2)
+   if #cyst >= 1 then return true end
+   return false
+end
+function getIsNearHive(where)
+   local hive = GetEntitiesWithinRange("Hive", where, kHiveCystParentRange - 3)
+   if #hive >= 1 then return true end
+   return false
+end
+function doChain(entity) 
+    //print("UHHH")
+    //local where = entity:GetOrigin()
+    //if not entity:isa("Contamination") and GetIsPointOnInfestation(where) then return end
+    //local cyst = GetEntitiesWithinRange("Cyst",where, kCystRedeployRange)
+    //if (#cyst >=1) then return end
 
     local splitPoints = GetCystPoints(entity:GetOrigin(), true, 2)
-
     for i = 1, #splitPoints do
-        local csyt = CreateEntity(Cyst.kMapName, FindFreeSpace(splitPoints[i], 1, 7), 2)
-        if not GetSetupConcluded() then csyt:SetConstructionComplete() end
+        //if getIsNearHive(splitPoints[i]) or ( not getHasCystNear(splitPoints[i]) and not GetIsPointOnInfestation(splitPoints[i]) ) then
+            local csyt = CreateEntity(Cyst.kMapName,splitPoints[i],2) //FindFreeSpace(splitPoints[i], 1, 7), 2)
+            if not GetSetupConcluded() then csyt:SetConstructionComplete() end
+        //end
     end
 end
 function GetIsPointWithinTechPointRadius(point)     

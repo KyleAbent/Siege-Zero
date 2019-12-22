@@ -24,12 +24,12 @@ end
 function Conductor:GetArcSpotForSiege()
 local inradius = #GetEntitiesWithinRange("Hive", self.arcSiegeOrig, ARC.kFireRange - 3) >= 1
     if not inradius then
-        Print("Conductor arc spot to place not in hive radius")
+        //Print("Conductor arc spot to place not in hive radius")
         local siegelocation = GetASiegeLocation()
         local siegepower = GetPowerPointForLocation(siegelocation.name)
         local hiveclosest = GetNearest(siegepower:GetOrigin(), "Hive", 2)
         if hiveclosest then
-            Print("Found hiveclosest")
+            //Print("Found hiveclosest")
             local origin  = FindArcHiveSpawn(siegepower:GetOrigin())
             if origin == nil then
                 print("[1]ERROR! AH! Unable to find Arc placement near siege.")
@@ -62,7 +62,7 @@ if Server then
         //print("imaginator:GetIsMarineEnabled() is %s",imaginator:GetIsMarineEnabled())
         //print("imaginator:GetIsAlienEnabled() is %s",imaginator:GetIsAlienEnabled())
         if imaginator:GetIsMarineEnabled() and GetSiegeDoorOpen() and self.arcSiegeOrig == self:GetOrigin() then
-            print("Conductor:OnUpdate AAAAAAAAAAA")
+            //print("Conductor:OnUpdate AAAAAAAAAAA")
             self:GetArcSpotForSiege()
         end
 
@@ -143,9 +143,9 @@ local function PowerPointStuff(who, self)
     local powerpoint =  location and GetPowerPointForLocation(location.name)
     local imaginator = GetImaginator()
     if powerpoint ~= nil then
-    Print("PowerPointStuff imaginator:GetIsMarineEnabled() is %s", imaginator:GetIsMarineEnabled())
-    Print("PowerPointStuff powerpoint:GetIsBuilt() is %s", powerpoint:GetIsBuilt() )
-    Print("PowerPointStuff powerpoint:GetIsDisabled() is %s", powerpoint:GetIsDisabled())
+    //Print("PowerPointStuff imaginator:GetIsMarineEnabled() is %s", imaginator:GetIsMarineEnabled())
+    //Print("PowerPointStuff powerpoint:GetIsBuilt() is %s", powerpoint:GetIsBuilt() )
+    //Print("PowerPointStuff powerpoint:GetIsDisabled() is %s", powerpoint:GetIsDisabled())
         if imaginator:GetIsMarineEnabled() and ( powerpoint:GetIsBuilt() and not powerpoint:GetIsDisabled() ) then
             print("PowerPointStuff return 1")
             return 1
@@ -168,7 +168,7 @@ local function Touch(who, where, what, number)
          if tower then
             who:SetAttached(tower)
             if number == 2 then
-             CreateEntity(Cyst.kMapName,where, 2 ) //Hm?
+             //CreateEntity(Cyst.kMapName,where, 2 ) //Hm?
              doChain(tower)//This might go kaput haha
              //CreateEntity(Clog.kMapName,where, 2 ) //Hm?
             end
@@ -261,7 +261,7 @@ function Conductor:ManageArcs()
     local where = nil
 
     if GetSiegeDoorOpen() and self.arcSiegeOrig ~= self:GetOrigin() then
-        print("ManageArcs SiegeDoorOpen and arcSiegeOrig origin is at conductor origin")
+        //print("ManageArcs SiegeDoorOpen and arcSiegeOrig origin is at conductor origin")
         where = self.arcSiegeOrig
     end
     
@@ -270,7 +270,7 @@ function Conductor:ManageArcs()
     end
     
     if where == self:GetOrigin()  then
-        print("Could not find spot for ARC!")
+        //print("Could not find spot for ARC!")
         return
     end
     

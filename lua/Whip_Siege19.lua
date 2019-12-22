@@ -8,3 +8,19 @@
     return true
     
 end
+if Server then
+
+    function Whip:OnOrderComplete(currentOrder)     
+        doChain(self)
+    end
+    
+    
+    function Whip:OnEnterCombat() 
+        if self.moving then  
+            self:ClearOrders()
+            self:GiveOrder(kTechId.Stop, nil, self:GetOrigin(), nil, true, true)  
+            doChain(self)
+        end
+    end
+    
+end

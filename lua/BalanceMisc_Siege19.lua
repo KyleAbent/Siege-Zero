@@ -1,3 +1,6 @@
+//kCystUnconnectedDamage = 5
+//kCystMaxParentRange = 9 --31
+//kCystRedeployRange = 3
 //kSentriesPerBattery = 4
 kEggsPerHatch = 5
 
