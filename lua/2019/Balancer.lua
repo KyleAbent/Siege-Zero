@@ -100,8 +100,9 @@ local function On_Contam_chanceRupture(origin)
     end
 end
     function Conductor:SpawnContamination(powerpoint)
-
-        if not GetHasThreeHives() or not GetFrontDoorOpen() then
+            //HasThreeHives is true if 2 are built and 1 is unbuilt. Hmm?
+        --if not GetHasThreeHives() or not GetFrontDoorOpen() then
+        if not GetFrontDoorOpen() or not GetHasThreeBuiltHives() then
             return
         end -- although not requiring biomass. Maybe later.
 

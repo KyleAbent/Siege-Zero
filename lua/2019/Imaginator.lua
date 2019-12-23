@@ -616,10 +616,37 @@ local function getAlienConsBuildOrig()
  
 end
 
-function Imaginator:hiveSpawn()  --gonna be bad for domesiege, and trainsiege, and map with tech outside. Unless told to be within range of other techpoint. All 3 techpoints for aliens are always close.
-        if self.alienenabled then
+function Imaginator:hiveSpawn()  
+      //lets add a check here for a 4th tech point after front door is opened. 
+      //or if tech chount count is 4 and aliens have 3 hives and the 4th tech is empty
+      //it's possible marines moved away from tech point also..
+       //if enabled, front door open, and has 3 hives?
+       //if there's more than 4 tech point count (marine only have 1)
+       //then prioritize the hives within range of eachother?
+       //lesss priority on other? 
+        //(Not really as that would require further withinrange requiresments
+            //asserting other tech within range. I don't think this is necessary. 
+            //MAybe later if I see it in game.
+            //Reason I'm adding this is because of a round of ns2_hivesiege-4_2015b
+                //having 4 tech points is actually a good mix. (For aliens)
+      
+      
+      if self.alienenabled then
+        local hiveCap = 3
         local hivecount = #GetEntitiesForTeam( "Hive", 2 )
-        if hivecount < 3 and hivecount >= 1 and TresCheck(2,40) then
+        if GetSetupConcluded() then
+            local techCount = #GetEntitiesWithinRange("TechPoint", self:GetOrigin(), 9999999)
+            local isMarineTechEmpty = false
+            
+            if techCount > 4 or ( techCount == 4 and isMarineTechEmpty and hivecount == hiveCap)then
+                hiveCap = 4
+            end
+            
+        end
+      
+      
+        
+        if hivecount < hiveCap and hivecount >= 1 and TresCheck(2,40) then
             for _, techpoint in ientitylist(Shared.GetEntitiesWithClassname("TechPoint")) do
                 if techpoint:GetAttached() == nil then 
                     local hive =  techpoint:SpawnCommandStructure(2) 
@@ -629,7 +656,9 @@ function Imaginator:hiveSpawn()  --gonna be bad for domesiege, and trainsiege, a
                 end
             end
         end
-    end
+   
+
+ end
 end
 
 function Imaginator:ActualAlienFormula(cystonly)

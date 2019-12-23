@@ -1,3 +1,15 @@
+function GetHasThreeBuiltHives()
+    local count = 0
+    for index, hive in ipairs(GetEntitiesForTeam("Hive", 2)) do
+        if hive:GetIsBuilt() then 
+            count = count + 1
+        end
+    end
+    if count >= 3 then
+        return true
+    end
+    return false
+end
 function GetIsPointWithinChairRadius(point)     
   
    local cc = GetEntitiesWithinRange("CommandStation", point, ARC.kFireRange)
