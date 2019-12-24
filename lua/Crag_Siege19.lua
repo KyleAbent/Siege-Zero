@@ -17,7 +17,7 @@ function Crag:GetIsWaveAllowed()
     return GetIsTimeUp(self.lastWave, kHealWaveCooldown)
 end
 function Crag:JustWavedNowSetTimer()
-    self.lastWave = Shared.GetTime()
+    self.lastWave = Shared.GetTime()//Although should be global in conductor like shadeink is , rather than for every crag having its own unique delay
 end
 
 local function ManageHealWave(self)
@@ -27,6 +27,7 @@ local function ManageHealWave(self)
                          if self.moving then 
                             self:ClearOrders()
                         end
+                        self:JustWavedNowSetTimer()
                         break//Only trigger once , not for every ... lol
                 end
       end
@@ -35,7 +36,6 @@ end
 function Crag:InstructSpecificRules()
     if GetIsWaveAllowed() then
         ManageHealWave(self)
-        self:JustWavedNowSetTimer()
     end
 end
 
