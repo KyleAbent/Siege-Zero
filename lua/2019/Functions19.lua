@@ -168,8 +168,8 @@ function doChain(entity)
     //print("UHHH")
     //local where = entity:GetOrigin()
     //if not entity:isa("Contamination") and GetIsPointOnInfestation(where) then return end
-    //local cyst = GetEntitiesWithinRange("Cyst",where, kCystRedeployRange)
-    //if (#cyst >=1) then return end
+    local cyst = GetEntitiesWithinRange("Cyst",where, kCystRedeployRange)
+    if (#cyst >=1) then return end
 
     local splitPoints = GetCystPoints(entity:GetOrigin(), true, 2)
     for i = 1, #splitPoints do
