@@ -340,24 +340,22 @@ function Conductor:ManageShades()
         local hive = GetRandomHive()
         local shade = table.random(shades)
         if not shade then break end
-                   //Maybe better to have the origin of scan search for shades within radius
-            if GetIsScanWithinRadius(shade:GetOrigin()) and self:GetIsInkAllowed() then
-                CreateEntity(ShadeInk.kMapName, shade:GetOrigin() + Vector(0, 0.2, 0), 2)
-                shade:TriggerEffects("shade_ink")
-                self:JustInkedNowSetTimer()
+        //Maybe better to have the origin of scan search for shades within radius
+        if GetIsScanWithinRadius(shade:GetOrigin()) and self:GetIsInkAllowed() then
+            CreateEntity(ShadeInk.kMapName, shade:GetOrigin() + Vector(0, 0.2, 0), 2)
+            shade:TriggerEffects("shade_ink")
+            self:JustInkedNowSetTimer()
+        end
+        if shade.moving then
+            return 
+        end
+        if not GetIsPointWithinHiveRadius(shade:GetOrigin()) then
+            local hive = GetRandomHive()
+            if hive then
+                shade:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
             end
-            if shade.moving then
-                return 
-            end
-            if not GetIsPointWithinHiveRadius(shade:GetOrigin()) then
-                local hive = GetRandomHive()
-                if hive then
-                    shade:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
-                end
-             end
-        end 
+        end
     end 
-
 end
 
 

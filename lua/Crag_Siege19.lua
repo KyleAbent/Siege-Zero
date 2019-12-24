@@ -34,7 +34,7 @@ local function ManageHealWave(self)
 end
 
 function Crag:InstructSpecificRules()
-    if GetIsWaveAllowed() then
+    if self:GetIsWaveAllowed() then
         ManageHealWave(self)
     end
 end

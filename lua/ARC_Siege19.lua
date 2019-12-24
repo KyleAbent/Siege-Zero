@@ -109,7 +109,7 @@ end
 function ARC:SpecificRules(where)
 local moving = self.mode == ARC.kMode.Moving    
 local isSiegeOpen =  GetSiegeDoorOpen() 
-Print("SpecificRules isSiegeOpen is %s", isSiegeOpen)
+//Print("SpecificRules isSiegeOpen is %s", isSiegeOpen)
         
 local attacking = self.deployMode == ARC.kDeployMode.Deployed
 

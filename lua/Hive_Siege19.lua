@@ -84,7 +84,7 @@ local orig_Hive_OnConstructionComplete = Hive.OnConstructionComplete
 function Hive:OnConstructionComplete()
     orig_Hive_OnConstructionComplete(self)
     local imaginator = GetImaginator()
-    if imaginator:GetIsAlienEnabled() then
+    if imaginator and imaginator:GetIsAlienEnabled() then
         self.bioMassLevel = 3
         UpdateTypeOfHive(self)
     end
