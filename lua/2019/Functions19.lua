@@ -166,7 +166,7 @@ function getIsNearHive(where)
 end
 function doChain(entity) 
     //print("UHHH")
-    //local where = entity:GetOrigin()
+    local where = entity:GetOrigin()
     //if not entity:isa("Contamination") and GetIsPointOnInfestation(where) then return end
     local cyst = GetEntitiesWithinRange("Cyst",where, kCystRedeployRange)
     if (#cyst >=1) then return end
