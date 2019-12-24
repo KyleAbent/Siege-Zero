@@ -13,7 +13,8 @@ local networkVars =
   lasthealwave = "private time",
   activeArmorys = "integer",
   activeRobos = "integer",
-  activeSentrys = "integer",
+  activeBatteries = "integer",
+  activeIPS = "integer",
   activeObs = "integer",
   activePGs = "integer",
   activeProtos = "integer",
@@ -29,7 +30,8 @@ function Imaginator:OnCreate()
    self.marineenabled = false
    self.activeArmorys = 0
    self.activeRobos = 0
-   self.activeSentrys = 0
+   self.activeIPS = 0
+   self.activeBatteries = 0
    self.activeObs = 0
    self.activePGs = 0
    self.activeProtos = 0
@@ -170,41 +172,11 @@ local function OrganizedIPCheck(who, self)
         return
     end
 
-    -- One entity at a time
     local count = 0
-    local ips = GetEntitiesForTeamWithinRange("InfantryPortal", 1, who:GetOrigin(), kInfantryPortalAttachRange)
-    --ADd in getisactive
-    --Add in arms lab because having these spread through the map is a bit odd.
-
-    //local armscost = 0//LookupTechData(kTechId.ArmsLab, kTechDataCostKey)
-    local  ArmsLabs = GetEntitiesForTeam( "ArmsLab", 1 )
-    local labs = #ArmsLabs or 0
-    if #ArmsLabs >= 1 then
-        for i = 1, #ArmsLabs do
-        local ent = ArmsLabs[i]
-            if ( ent:GetIsBuilt() and not ent:GetIsPowered() ) then
-                labs = labs - 1
-            end
-        end
-    end
-
-    if labs < 2 then //and TresCheck(1, armscost) then
-        local origin = FindFreeSpace(who:GetOrigin(), 1, kInfantryPortalAttachRange)
-        local armslab = CreateEntity(ArmsLab.kMapName, origin,  1)
-        if not GetSetupConcluded() then
-         armslab:SetConstructionComplete()
-        end
-        return --one at a time
-    end
-
-
-    for index, ent in ipairs(ips) do
-        if ent:GetIsPowered() or not ent:GetIsBuilt() then
-            count = count + 1
-        end
-    end
-
-    if count >= 2 then
+    //local findFree = FindFreeSpace(who:GetOrigin(), 1, kInfantryPortalAttachRange)
+    local ipsInRange = GetEntitiesForTeamWithinRange("InfantryPortal", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    //and activeIPS <= numofChairs*3/4
+    if #ipsInRange >= math.random(3,4) then//self.activeIPS >= 8 then //do a check for within range so that each base has its own
      return
     end
 
@@ -215,11 +187,61 @@ local function OrganizedIPCheck(who, self)
         local origin = FindFreeSpace(where, 4, kInfantryPortalAttachRange)
             if origin ~= where then
             local ip = CreateEntity(InfantryPortal.kMapName, origin,  1)
-                if not GetSetupConcluded() then ip:SetConstructionComplete() end
+                if not GetSetupConcluded() then 
+                     ip:SetConstructionComplete()
                     //ip:GetTeam():SetTeamResources(ip:GetTeam():GetTeamResources() - cost)
                 end
+            end
+    //end
+    
+    //May have to re-introduce armslab here if it doesn't spawn fast enough after round start lol
+    //Unless the work around to that is the MarineInitialBaseSpawn creating an ArmsLab...
+    
+      //Bad for if aliens take it down then they get no reward of unpowered marines
+      //unless marines dont build it lol
+      if self.activeArms <= 1 then
+        local origin = FindFreeSpace(where, 4, kInfantryPortalAttachRange)
+        local arms = CreateEntity(ArmsLab.kMapName, origin,  1)
+          if not GetSetupConcluded() then
+            arms:SetConstructionComplete()
+          end
+      end
+
+end
+local function OrganizedSentryCheck(who, self)
+       if not who or not who:GetIsBuilt() then
+        return
+    end
+
+    local count = 0
+    //local findFree = FindFreeSpace(who:GetOrigin(), 1, 7)//range of battery??
+    local sentrysInRange = GetEntitiesForTeamWithinRange("Sentry", 1, who:GetOrigin(), 4)//range of battery??
+
+    if #sentrysInRange >= 4 then//self.activeIPS >= 8 then //do a check for within range so that each base has its own
+     return
+    end
+
+    --for i = 1, math.abs( 2 - count ) do --one at a time
+    //local cost = 20
+    //if TresCheck(1, cost) then
+        local where = who:GetOrigin()
+        local origin = FindFreeSpace(where, 1, 4)//range of battery??
+            if origin ~= where then
+            local sentry = CreateEntity(Sentry.kMapName, origin, 1)
+                if not GetSetupConcluded() then sentry:SetConstructionComplete() end
+                    //sentry:GetTeam():SetTeamResources(sentry:GetTeam():GetTeamResources() - cost)
+                //end
+            end
+
     //end
 
+end
+local function HaveBatteriesCheckSentrys(self)
+    local SentryBatterys = GetEntitiesForTeam( "SentryBattery", 1 )
+    if not SentryBatterys then
+     return
+    end
+    OrganizedSentryCheck(table.random(SentryBatterys), self)
 end
 
 local function HaveCCsCheckIps(self)
@@ -328,11 +350,9 @@ local function GetMarineSpawnList(self)
         end
     end
     -------------------------------------------------------------------------------------------------
-    local  Sentry = #GetEntitiesForTeam( "Sentry", 1 ) --#GetActiveConstructsForTeam( "Sentry", 1 )
-    //This aint gonna spawn well unless we spawn a sentrybattery then do something similar to CC Checking IPs
 
-    if Sentry <= 11 then --self.activeSentrys <= 11 then
-    table.insert(tospawn, kTechId.Sentry)
+    if self.activeBatteries <= 9 then //or count of locations with built power up lol
+      table.insert(tospawn, kTechId.SentryBattery)
     end
     ----------------------------------------------------------------------------------------------------
     --timecheck to prevent 3 CC in one room w/o checking for such definition
@@ -380,9 +400,25 @@ function Imaginator:ActualFormulaMarine()
     if GetGamerules():GetGameState() == kGameState.Started then
         gamestarted = true
         HaveCCsCheckIps(self)
+        HaveBatteriesCheckSentrys(self)
         ManageRoboticFactories()
     end
+    //Can do a check for PG or Battery here, if techid is .. then get all locations without...
 
+    /*
+      Getting rooms without PG and Battery, one day ... lol
+      local powerpoint = nil
+      //Can do a check for PG or Battery here, if techid is .. then get all locations without...
+      if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) then
+        powerpoint = GetRandomActivePowerWithoutPGInRoom()
+      elseif tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn) then
+        powerpoint = GetRandomActivePowerWithoutBatteryInRoom()
+      else
+        powerpoint = GetRandomActivePower()
+      end
+    */
+    
+    
     local powerpoint = GetRandomActivePower()
     local success = false
     local entity = nil
@@ -409,8 +445,8 @@ function Imaginator:ActualFormulaMarine()
                     local range = GetRange(nearestof, randomspawn)
                     --    Print("tospawn is %s, location is %s, range between is %s", tospawn, GetLocationForPoint(randomspawn).name, range)
                     local minrange = nearestof.GetMinRangeAC and nearestof:GetMinRangeAC() or math.random(4,24) --nearestof:GetMinRangeAC()
-
-                    if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) then
+                        //Can eventually move this upwards to get only rooms without these in them ugh. Rather than blocking the entire function.
+                    if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) or tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn) then
                         return
                     end
 
@@ -609,7 +645,7 @@ local function getAlienConsBuildOrig()
   if random == 1 then
     return GetRandomDisabledPower()
   elseif random == 2 then --random built const
-    return GetRandomDisabledPower()
+    return GetRandomConnectedCyst()
   elseif random == 3 then--random built exit
     return GetRandomDisabledPower()
   end
@@ -636,7 +672,14 @@ function Imaginator:hiveSpawn()
         local hivecount = #GetEntitiesForTeam( "Hive", 2 )
         if GetSetupConcluded() then
             local techCount = #GetEntitiesWithinRange("TechPoint", self:GetOrigin(), 9999999)
-            local isMarineTechEmpty = false
+            local isMarineTechEmpty = true
+            //Requires further logic. Do a for loop of all tech. Make sure tech point attached is not marines.
+            
+            for _, techpoint in ientitylist(Shared.GetEntitiesWithClassname("TechPoint")) do
+                if techpoint.occupiedTeam == 1 then
+                    isMarineTechEmpty = false
+                end
+            end
             
             if techCount > 4 or ( techCount == 4 and isMarineTechEmpty and hivecount == hiveCap)then
                 hiveCap = 4
@@ -671,17 +714,17 @@ function Imaginator:ActualAlienFormula(cystonly)
     con:ManageWhips()
 
     local randomspawn = nil
-    local powerpoint  = getAlienConsBuildOrig() 
+    local spawnPointEnt  = getAlienConsBuildOrig() 
     local tospawn = GetAlienSpawnList(self) --, cost, gamestarted = GetAlienSpawnList(self, cystonly)
     local success = false
     local entity = nil
 
     if spawnNearEnt then
-        Print("ActualAlienFormula cystonly %s, spawnNearEnt %s, tospawn %s", cystonly,  powerpoint:GetMapName() or nil, LookupTechData(tospawn, kTechDataMapName)  )
+        Print("ActualAlienFormula cystonly %s, spawnNearEnt %s, tospawn %s", cystonly,  spawnPointEnt:GetMapName() or nil, LookupTechData(tospawn, kTechDataMapName)  )
     end
 
-    if powerpoint and tospawn then     
-        local potential = FindPosition(GetAllLocationsWithSameName(powerpoint:GetOrigin()), powerpoint, 2)
+    if spawnPointEnt and tospawn then     
+        local potential = FindPosition(GetAllLocationsWithSameName(spawnPointEnt:GetOrigin()), spawnPointEnt, 2)
         if potential == nil then
             local roll = math.random(1,3)
         if roll == 3 then

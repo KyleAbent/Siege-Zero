@@ -96,7 +96,7 @@ end
 local function On_Contam_chanceRupture(origin)
     random = math.random(1,100)
     if random <= 30 then
-       local entity = CreateEntityForTeam(kTechId.Hydra, origin, 2)
+       local entity = CreateEntityForTeam(kTechId.Rupture, origin, 2)
     end
 end
     function Conductor:SpawnContamination(powerpoint)

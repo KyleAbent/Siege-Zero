@@ -18,6 +18,19 @@ function GetIsPointWithinChairRadius(point)
    return false
 end
 
+function GetHasBatteryInRoom(where)
+
+    local batteries = GetEntitiesForTeamWithinRange("SentryBattery", 1, where, 999999)
+    if #batteries == 0 then return false end
+    for i = 1, #batteries do
+        local ent = batteries[i]
+        if GetLocationForPoint(ent:GetOrigin()) == GetLocationForPoint(where) then return true end
+    end
+
+    return false  
+                
+end
+
 function GetHasPGInRoom(where)
 
     local pgs = GetEntitiesForTeamWithinRange("PhaseGate", 1, where, 999999)
@@ -91,6 +104,17 @@ function GetRandomDisabledPower()
     if #powers == 0 then return nil end
     local power = table.random(powers)
     return  power
+end
+function GetRandomConnectedCyst()
+    local cysts = {}
+    for _, cyst in ientitylist(Shared.GetEntitiesWithClassname("Cyst")) do
+        if  cyst:GetIsBuilt() and cyst:GetIsActuallyConnected() then
+          table.insert(cysts,cyst)
+        end
+    end
+    if #cysts == 0 then return nil end
+    local cyst = table.random(cysts)
+    return  cyst
 end
 function FindArcHiveSpawn(where)    
     for index = 1, 24 do
@@ -315,6 +339,12 @@ function GetRandomActivePower()//bool notSiege, if notSiege true then.. prevent 
             if power:GetIsBuilt() and not power:GetIsDisabled() then table.insert(powers,power) end//and not in siege ? Hm?
         end
         return table.random(powers)
+end
+function GetRandomActivePowerWithoutPGInRoom()//bool notSiege, if notSiege true then.. prevent grabbing siege powerpoint..?
+ //Insert headache here
+end
+function GetRandomActivePowerWithoutBatteryInRoom()//bool notSiege, if notSiege true then.. prevent grabbing siege powerpoint..?
+    //Insert headache here
 end
 function GetAllLocationsWithSameName(origin)
     local location = GetLocationForPoint(origin)

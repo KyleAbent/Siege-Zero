@@ -16,3 +16,17 @@ end
 function InfantryPortal:GetMinRangeAC()
 return IPAutoCCMR  
 end
+
+function InfantryPortal:OnPowerOn()
+	 GetImaginator().activeIPS = GetImaginator().activeIPS + 1;  
+end
+
+function InfantryPortal:OnPowerOff()
+	 GetImaginator().activeIPS = GetImaginator().activeIPS - 1;  
+end
+
+ function InfantryPortal:PreOnKill(attacker, doer, point, direction)
+	  if self:GetIsPowered() then
+	    GetImaginator().activeIPS  = GetImaginator().activeIPS- 1;  
+	  end
+end
