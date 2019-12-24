@@ -9,20 +9,40 @@ Conductor.kMapName = "conductor"
 local networkVars =
 
 {
-    arcSiegeOrig = "vector",
+    arcSiegeOrig = "vector",//Added a way in to reset this if there's two hives down and 1 hive outside of radius 
+    //mostRecentCyst = "entityid"
+    mostRecentCystOrig = "vector",
+    lastInk = "time" //Global in one location rather than local for every shade in many locations
 }
 
 
 function Conductor:OnCreate()
     self.arcSiegeOrig = self:GetOrigin()
+    self.mostRecentCystOrig = self:GetOrigin()
+    self.lastInk = 0
     for i = 1, 8 do
         Print("Conductor created")
     end
     self:SetUpdates(true)
 end
 
+function Conductor:GetIsInkAllowed()
+    return GetIsTimeUp(self.lastInk, kShadeInkCooldown)
+end
+function Conductor:JustInkedNowSetTimer()
+    self.lastInk = Shared.GetTime()
+end
+/*
+function Conductor:SetMostRecentCyst(cystid)
+    self.mostRecentCyst = cystid//Do I have to hook CystPreOnKill, call cond, get most recent cyst id.. if match then set back to invalid? Hm. Not Sure. Ah.
+end
+*/    
+function Conductor:SetMostRecentCystOrigin(vector)
+    self.mostRecentCystOrig = vector//So I don't have to worry about entity id with cyst and all that hehe
+end
+    
 function Conductor:GetArcSpotForSiege()
-local inradius = #GetEntitiesWithinRange("Hive", self.arcSiegeOrig, ARC.kFireRange - 3) >= 1
+local inradius = GetIsPointWithinHiveRadius(self.arcSiegeOrig)//#GetEntitiesWithinRange("Hive", self.arcSiegeOrig, ARC.kFireRange - 3) >= 1
     if not inradius then
         //Print("Conductor arc spot to place not in hive radius")
         local siegelocation = GetASiegeLocation()
@@ -47,10 +67,17 @@ local inradius = #GetEntitiesWithinRange("Hive", self.arcSiegeOrig, ARC.kFireRan
                 print("[3]ERROR! AH! Unable to find Arc placement near siege.")
                 return
             end
-            inRangeofOrigin = #GetEntitiesWithinRange("Hive", origin, ARC.kFireRange - 3) >= 1
-            if origin and inRangeofOrigin then
+
+            if origin ~= nil then
+                local inRangeofOrigin = GetIsPointWithinHiveRadius(origin) //#GetEntitiesWithinRange("Hive", origin, ARC.kFireRange) >= 1
+                if inRangeofOrigin then
                 self.arcSiegeOrig = origin
                 Print("Found arc spot within hive radius")
+                end
+            end
+            if origin == nil then
+                print("[4]ERROR! AH! Unable to find Arc placement for Siege!")
+                return
             end
         end
     end
@@ -58,24 +85,31 @@ end
 
 if Server then
     function Conductor:OnUpdate(deltatime)
-        imaginator = GetImaginator()
-        //print("imaginator:GetIsMarineEnabled() is %s",imaginator:GetIsMarineEnabled())
-        //print("imaginator:GetIsAlienEnabled() is %s",imaginator:GetIsAlienEnabled())
-        if imaginator:GetIsMarineEnabled() and GetSiegeDoorOpen() and self.arcSiegeOrig == self:GetOrigin() then
-            //print("Conductor:OnUpdate AAAAAAAAAAA")
+
+        if not self.timeLastArcSiege or self.timeLastArcSiege + 20 <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
+            if GetSiegeDoorOpen() and GetIsImaginatorMarineEnabled() then 
             self:GetArcSpotForSiege()
+            self.timeLastArcSiege = Shared.GetTime()
+            //So if 2 hives are dead and 1 is remaining then find new spot. If possible. Though 2 more will likely drop in the meantime haha.
+            end
         end
 
-        if (imaginator:GetIsMarineEnabled() or imaginator:GetIsAlienEnabled()) and not self.timeLastAutomations or self.timeLastAutomations + 8 <= Shared.GetTime() then
-            //print("Conductor:OnUpdate BBBBBBBBBBB")
-            self:DoMist()
-            self:Automations()
-            self.timeLastAutomations = Shared.GetTime()
+        if not self.timeLastAutomations or self.timeLastAutomations + 8 <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:DoMist()
+                self.timeLastAutomations = Shared.GetTime()//Just incase? o_O
+            end
+            if (GetIsImaginatorMarineEnabled() or GetIsImaginatorAlienEnabled()) then 
+                self:Automations(GetIsImaginatorMarineEnabled(),GetIsImaginatorAlienEnabled())
+                self.timeLastAutomations = Shared.GetTime()
+            end
         end
 
-        if imaginator:GetIsAlienEnabled() and not self.phaseCannonTime or self.phaseCannonTime + math.random(23,69) <= Shared.GetTime() then
-            self:ContaminationSpawnTimer()
-            self.phaseCannonTime = Shared.GetTime()
+        if not self.phaseCannonTime or self.phaseCannonTime + math.random(23,69) <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ContaminationSpawnTimer()
+                self.phaseCannonTime = Shared.GetTime()
+            end
         end
 
     end
@@ -127,15 +161,17 @@ function Conductor:ContaminationSpawnTimer()
          ChanceContaminationSpawn(self)
 end
 
-function Conductor:Automations()
-            --  self:MaintainHiveDefense()
-              self:HandoutMarineBuffs() --This function is missing...???
-            --  self:CheckAndMaybeBuildMac()
-             if GetGameStarted() then
+function Conductor:Automations(isMarineEnabled,isAlienEnabled)
+             
+            if isMarineEnabled then
+              self:HandoutMarineBuffs()
+            end
+
+             if isMarineEnabled or isAlienEnabled and GetGameStarted() then
                self:AutoBuildResTowers()
              end
 
-              return true
+             return true
 end
 
 local function PowerPointStuff(who, self)
@@ -143,9 +179,6 @@ local function PowerPointStuff(who, self)
     local powerpoint =  location and GetPowerPointForLocation(location.name)
     local imaginator = GetImaginator()
     if powerpoint ~= nil then
-    //Print("PowerPointStuff imaginator:GetIsMarineEnabled() is %s", imaginator:GetIsMarineEnabled())
-    //Print("PowerPointStuff powerpoint:GetIsBuilt() is %s", powerpoint:GetIsBuilt() )
-    //Print("PowerPointStuff powerpoint:GetIsDisabled() is %s", powerpoint:GetIsDisabled())
         if imaginator:GetIsMarineEnabled() and ( powerpoint:GetIsBuilt() and not powerpoint:GetIsDisabled() ) then
             print("PowerPointStuff return 1")
             return 1
@@ -168,9 +201,7 @@ local function Touch(who, where, what, number)
          if tower then
             who:SetAttached(tower)
             if number == 2 then
-             //CreateEntity(Cyst.kMapName,where, 2 ) //Hm?
-             doChain(tower)//This might go kaput haha
-             //CreateEntity(Clog.kMapName,where, 2 ) //Hm?
+             doChain(tower)
             end
             return tower
          end
@@ -213,28 +244,15 @@ function Conductor:DoMist()
       end
 end
 
-local function BuildAllNodes(self)
-
-          for _, powerpoint in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
-             powerpoint:SetConstructionComplete()
-             local where = powerpoint:GetOrigin()
-               if powerpoint:GetIsBuilt() and powerpoint.lightHandler then  powerpoint.lightHandler:DiscoLights() end
-              if not GetIsPointInMarineBase(where) and math.random(1,2) == 1  then
-                     powerpoint:Kill()
-              end
-          end
-
-end
 
 local function BuildAllNodes(self)
 
           for _, powerpoint in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
              powerpoint:SetConstructionComplete()
              local where = powerpoint:GetOrigin()
-               if powerpoint:GetIsBuilt() and powerpoint.lightHandler then  powerpoint.lightHandler:DiscoLights() end
-              if not GetIsPointInMarineBase(where) and math.random(1,2) == 1  then//Wait what? LOL
-                     powerpoint:Kill()
-              end
+             if not GetIsPointInMarineBase(where) and math.random(1,2) == 1  then
+                powerpoint:Kill()
+             end
           end
 
 end
@@ -309,25 +327,70 @@ function Conductor:ManageMacs()
 
 end
 
+function Conductor:ManageShades()
+    local random = math.random(1,4)
+    if not GetSiegeDoorOpen() then return end//for now just during siege
+    local shades = GetEntitiesForTeam( "Shade", 2 )
+
+    for i = 1, random do --maybe time delay ah
+        local hive = GetRandomHive()
+        local shade = table.random(shades)
+        if not shade then break end
+                   //Maybe better to have the origin of scan search for shades within radius
+            if GetIsScanWithinRadius(shade:GetOrigin()) and self:GetIsInkAllowed() then
+                CreateEntity(ShadeInk.kMapName, shade:GetOrigin() + Vector(0, 0.2, 0), 2)
+                shade:TriggerEffects("shade_ink")
+                self:JustInkedNowSetTimer()
+            end
+            if shade.moving then
+                return 
+            end
+            if not GetIsPointWithinHiveRadius(shade:GetOrigin()) then
+                local hive = GetRandomHive()
+                if hive then
+                    shade:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
+                end
+             end
+        end 
+    end 
+
+end
+
+
 function Conductor:ManageCrags()
 
     local random = math.random(1,4)
     if not GetFrontDoorOpen() then return end
+    local crags = GetEntitiesForTeam( "Crag", 2 )
 
     for i = 1, random do --maybe time delay ah
         local hive = GetRandomHive()
-        local nearestof = GetNearest(hive:GetOrigin(), "Crag", 2, function(ent) return ent:GetIsBuilt() end ) //and not ent:GetIsACreditStructure() end) --and not ent.moving )  end)
-        if nearestof then
+        local crag = table.random(crags)
+        if crag then
             --if moving then like arc instruct specificrules
-            nearestof:InstructSpecificRules()
-            if nearestof.moving then
+            crag:InstructSpecificRules()
+            if crag.moving then
                 return 
             end
-            local power = GetNearest(nearestof:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and ent:GetIsDisabled() and GetLocationForPoint(nearestof:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin()) end ) 
-            if power then
-                nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
+            if GetSiegeDoorOpen() and not GetIsPointWithinHiveRadiusForHealWave(crag:GetOrigin()) then
+                local hive = GetRandomHive()
+                if hive then
+                    crag:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
+                end
+            else
+                local random = math.random(1,2)
+                if random == 1 then
+                    local power = GetNearest(crag:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and ent:GetIsDisabled() and GetLocationForPoint(crag:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin()) end ) 
+                    if power then
+                        crag:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
+                    end
+                    //Maybe some teammate in combat? and once not moving then doChain ?
+                else
+                    if self.mostRecentCystOrig ~= self:GetOrigin() then
+                        crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(self.mostRecentCystOrig, 4), nil, false, false) 
+                    end
+                end
             end
-            //Maybe some teammate in combat? and once not moving then doChain ?
         end 
     end  
 end

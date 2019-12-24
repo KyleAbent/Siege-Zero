@@ -170,12 +170,18 @@ function doChain(entity)
     //if not entity:isa("Contamination") and GetIsPointOnInfestation(where) then return end
     local cyst = GetEntitiesWithinRange("Cyst",where, kCystRedeployRange)
     if (#cyst >=1) then return end
+    local conductor = GetConductor()
 
     local splitPoints = GetCystPoints(entity:GetOrigin(), true, 2)
     for i = 1, #splitPoints do
         //if getIsNearHive(splitPoints[i]) or ( not getHasCystNear(splitPoints[i]) and not GetIsPointOnInfestation(splitPoints[i]) ) then
             local csyt = CreateEntity(Cyst.kMapName,splitPoints[i],2) //FindFreeSpace(splitPoints[i], 1, 7), 2)
             if not GetSetupConcluded() then csyt:SetConstructionComplete() end
+            if i == #splitPoints then //last one
+                //conductor:SetMostRecentCyst(cyst:GetId())
+                Print("Setting Conductor most recent cyst origin")
+                conductor:SetMostRecentCystOrigin(splitPoints[i])
+            end 
         //end
     end
 end
@@ -189,6 +195,30 @@ end
 function GetIsPointWithinHiveRadius(point)     
    local hive = GetEntitiesWithinRange("Hive", point, ARC.kFireRange)
    if #hive >= 1 then return true end
+   return false
+end
+function GetIsPointWithinHiveRadiusForHealWave(point)     
+   local hive = GetEntitiesWithinRange("Hive", point, Crag.kHealRadius)
+   if #hive >= 1 then return true end
+   return false
+end
+function GetIsScanWithinRadius(point)     
+   local scan = GetEntitiesWithinRange("Scan", point, kScanRadius)
+   if #scan >= 1 then return true end
+   return false
+end
+function GetIsImaginatorMarineEnabled(point)     
+   local imaginator = GetImaginator()
+   if imaginator then
+    return imaginator:GetIsMarineEnabled()
+   end
+   return false
+end
+function GetIsImaginatorAlienEnabled(point)     
+   local imaginator = GetImaginator()
+   if imaginator then
+    return imaginator:GetIsAlienEnabled()
+   end
    return false
 end
 function FindFreeSpace(where, mindistance, maxdistance, infestreq)    

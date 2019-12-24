@@ -709,6 +709,7 @@ function Imaginator:ActualAlienFormula(cystonly)
     local con = GetConductor()
     con:ManageDrifters() 
     //ManageCysts - look for struct without infestation, doChain for one then break
+    con:ManageShades()
     con:ManageCrags() 
     con:ManageShifts()
     con:ManageWhips()
