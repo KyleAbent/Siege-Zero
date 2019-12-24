@@ -47,7 +47,14 @@ local where = nil
    end
 */
                if where then
-                    self:GiveOrder(kTechId.Move, nil, FindFreeSpace(where), nil, true, true)
+                    //self:GiveOrder(kTechId.Move, nil, FindFreeSpace(where), nil, true, true)//FindFree may go outside radius
+                    local inradius = FindArcHiveSpawn(where)//This might get spammy having all arcs find spot again when it already did once globally (conductor).
+                    if inradius then
+                      self:GiveOrder(kTechId.Move, nil, inradius, nil, true, true)
+                    else
+                      self:GiveOrder(kTechId.Move, nil, where, nil, true, true)//Try where, if 12 arc go in 1 spot then do .. ??
+                    end
+                      
                     return
                 end   
 end

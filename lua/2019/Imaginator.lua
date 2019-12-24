@@ -508,7 +508,7 @@ function Imaginator:Imaginations()
     end
     
     if self.alienenabled then
-        self:AlienConstructs(false)
+        self:AlienConstructs()
     end
 
     return true
@@ -623,10 +623,10 @@ function Imaginator:DoBetterUpgs()
 end
 
 
-function Imaginator:AlienConstructs(cystonly)
---Print("AlienConstructs cystonly %s", cystonly)
+function Imaginator:AlienConstructs()
+--Print("AlienConstructs")
        for i = 1, 8 do
-         local success = self:ActualAlienFormula(cystonly)
+         local success = self:ActualAlienFormula()
          if success == true then break end
        end
         --  if  GetHasShiftHive() then --messy
@@ -644,10 +644,10 @@ local function getAlienConsBuildOrig()
   --or active gorge tunnel  exit
   if random == 1 then
     return GetRandomDisabledPower()
-  elseif random == 2 then --random built const
-    return GetRandomConnectedCyst()
-  elseif random == 3 then--random built exit
-    return GetRandomDisabledPower()
+  elseif random == 2 then 
+    return GetRandomConnectedCyst()//Chance of erroring if entity dies ?
+  elseif random == 3 then
+    return GetRandomConstructEntityNearMostRecentPlacedCyst()//Chance of erroring if entity dies ?
   end
  
 end
@@ -680,15 +680,13 @@ function Imaginator:hiveSpawn()
                     isMarineTechEmpty = false
                 end
             end
-            
-            if techCount > 4 or ( techCount == 4 and isMarineTechEmpty and hivecount == hiveCap)then
-                hiveCap = 4
+                                  //Any case where > 4 ?
+            if techCount > 4 or ( techCount == 4 and isMarineTechEmpty and hivecount == hiveCap) then
+                hiveCap = 4//Hm, why limit to 4? 
             end
             
         end
       
-      
-        
         if hivecount < hiveCap and hivecount >= 1 and TresCheck(2,40) then
             for _, techpoint in ientitylist(Shared.GetEntitiesWithClassname("TechPoint")) do
                 if techpoint:GetAttached() == nil then 
@@ -704,7 +702,7 @@ function Imaginator:hiveSpawn()
  end
 end
 
-function Imaginator:ActualAlienFormula(cystonly)
+function Imaginator:ActualAlienFormula()
     self:hiveSpawn()
     local con = GetConductor()
     con:ManageDrifters() 
@@ -716,12 +714,12 @@ function Imaginator:ActualAlienFormula(cystonly)
 
     local randomspawn = nil
     local spawnPointEnt  = getAlienConsBuildOrig() 
-    local tospawn = GetAlienSpawnList(self) --, cost, gamestarted = GetAlienSpawnList(self, cystonly)
+    local tospawn = GetAlienSpawnList(self) --, cost, gamestarted = GetAlienSpawnList(self)
     local success = false
     local entity = nil
 
     if spawnNearEnt then
-        Print("ActualAlienFormula cystonly %s, spawnNearEnt %s, tospawn %s", cystonly,  spawnPointEnt:GetMapName() or nil, LookupTechData(tospawn, kTechDataMapName)  )
+        Print("ActualAlienFormula, spawnNearEnt %s, tospawn %s",  spawnPointEnt:GetMapName() or nil, LookupTechData(tospawn, kTechDataMapName)  )
     end
 
     if spawnPointEnt and tospawn then     
@@ -757,13 +755,11 @@ function Imaginator:ActualAlienFormula(cystonly)
                 -- end
             end
             success = true
-            else -- it tonly takes 1!
+            else -- Make 1
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 
                 end
-                    -- if entity:isa("Cyst") then CystChain(entity:GetOrigin()) end
-                    --      if not entity:isa("Cyst") then FakeCyst(entity:GetOrigin()) end
                     --   if gamestarted then entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost) end
                     success = true
             end 

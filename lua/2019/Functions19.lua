@@ -1,3 +1,10 @@
+function GetRandomConstructEntityNearMostRecentPlacedCyst()
+   local conductor = GetConductor()
+   local nearestof = GetNearestMixin(conductor:GetMostRecentCystOrigin(), "Construct", 2, function(ent) return ent:GetIsAlive() end)
+   if nearestof then
+     return nearestof
+   end
+end
 function GetHasThreeBuiltHives()
     local count = 0
     for index, hive in ipairs(GetEntitiesForTeam("Hive", 2)) do
@@ -400,7 +407,7 @@ end
 end
  function GetHasShadeHive()
     for index, hive in ipairs(GetEntitiesForTeam("Hive", 2)) do
-       if hive:GetTechId() == kTechId.ShadeHive then return true end
+       if hive:GetIsBuilt() and hive:GetTechId() == kTechId.ShadeHive then return true end//only way for it to be shadehive is for it to be built eh?
     end
     return false
 end

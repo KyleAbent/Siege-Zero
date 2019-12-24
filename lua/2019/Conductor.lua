@@ -27,7 +27,7 @@ function Conductor:OnCreate()
 end
 
 function Conductor:GetIsInkAllowed()
-    return GetIsTimeUp(self.lastInk, kShadeInkCooldown)
+    return GetHasShadeHive() and GetIsTimeUp(self.lastInk, kShadeInkCooldown)
 end
 function Conductor:JustInkedNowSetTimer()
     self.lastInk = Shared.GetTime()
@@ -40,7 +40,9 @@ end
 function Conductor:SetMostRecentCystOrigin(vector)
     self.mostRecentCystOrig = vector//So I don't have to worry about entity id with cyst and all that hehe
 end
-    
+   function Conductor:GetMostRecentCystOrigin()
+    return self.mostRecentCystOrig
+end 
 function Conductor:GetArcSpotForSiege()
 local inradius = GetIsPointWithinHiveRadius(self.arcSiegeOrig)//#GetEntitiesWithinRange("Hive", self.arcSiegeOrig, ARC.kFireRange - 3) >= 1
     if not inradius then
@@ -50,7 +52,11 @@ local inradius = GetIsPointWithinHiveRadius(self.arcSiegeOrig)//#GetEntitiesWith
         local hiveclosest = GetNearest(siegepower:GetOrigin(), "Hive", 2)
         if hiveclosest then
             //Print("Found hiveclosest")
-            local origin  = FindArcHiveSpawn(siegepower:GetOrigin())
+            local origin  = FindArcHiveSpawn(self.arcSiegeOrig)//Adding for 0 incase old spot is saved, find new one near old spot.
+            if origin == nil then
+                print("[0]ERROR! AH! Unable to find Arc placement near siege.")
+                origin  = FindArcHiveSpawn(siegepower:GetOrigin())
+            end
             if origin == nil then
                 print("[1]ERROR! AH! Unable to find Arc placement near siege.")
                 origin  = FindArcHiveSpawn(hiveclosest:GetOrigin())
@@ -119,7 +125,7 @@ end//Server
 local function ChanceContaminationSpawn(self)
 //Probably a more fair version of this rather than DDOS? LOL
     local onechance = math.random(1,2)
-    --if self:GetIsPhaseFourBoolean() then
+
     if onechance == 1 then
         local chance = math.random(1,100)
         if chance >= 70 then
@@ -134,9 +140,7 @@ local function ChanceContaminationSpawn(self)
                  end
         end
     else
-        --elseif self:GetIsPhaseTwoBoolean() then
-        -- local cc = GetRandomCC()
-        --  if cc then  self:SpawnContamination(cc) return end
+
         local power = GetRandomActivePower()
         if power then
           self:SpawnContamination(power)
