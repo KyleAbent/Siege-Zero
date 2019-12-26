@@ -28,35 +28,18 @@ function ARC:Instruct(where)
 end
 
 local function MoveToHives(self, where) --Closest hive from origin
---Print("Siegearc MoveToHives")  
-/*
-local where = nil
-   if not GetIsInSiege(self) then
-     local siegelocation = GetSiegeLocation()
-     if not siegelocation then return true end
-     local siegepower = GetPowerPointForLocation(siegelocation.name)
-           where = FindFreeSpace(siegepower:GetOrigin())
-   else Print("MoveToHives inSiege")   --in siege 
-    -- local hiveclosest = GetNearest(self:GetOrigin(), "Hive", 2)
-     --   if hiveclosest then
-           local origin  = FindArcHiveSpawn(self:GetOrigin()) 
-           if origin then
-            where = origin
-           end
-       -- end
-   end
-*/
-               if where then
-                    //self:GiveOrder(kTechId.Move, nil, FindFreeSpace(where), nil, true, true)//FindFree may go outside radius
-                    local inradius = FindArcHiveSpawn(where)//This might get spammy having all arcs find spot again when it already did once globally (conductor).
-                    if inradius then
-                      self:GiveOrder(kTechId.Move, nil, inradius, nil, true, true)
-                    else
-                      self:GiveOrder(kTechId.Move, nil, where, nil, true, true)//Try where, if 12 arc go in 1 spot then do .. ??
-                    end
-                      
-                    return
-                end   
+    if where then
+        //self:GiveOrder(kTechId.Move, nil, FindFreeSpace(where), nil, true, true)//FindFree may go outside radius
+        local inradius = FindArcHiveSpawn(where)//This might get spammy having all arcs find spot again when it already did once globally (conductor).
+        if inradius then
+            self:GiveOrder(kTechId.Move, nil, inradius, nil, true, true)
+            SetDirectorLockedOnEntity(self)
+        else
+            self:GiveOrder(kTechId.Move, nil, where, nil, true, true)//Try where, if 12 arc go in 1 spot then do .. ??
+            SetDirectorLockedOnEntity(self)
+        end
+        return
+    end   
 end
 local function MoveToRandomChair(who) --Closest hive from origin
  local commandstation = GetEntitiesForTeam( "CommandStation", 1 )

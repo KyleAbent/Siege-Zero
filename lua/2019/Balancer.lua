@@ -55,7 +55,7 @@ local function On_Contam_chanceShade(origin,imaginator)
                 doChain(entity)
             end
         else
-            local shade = GetNearest(origin, "Shade", 2, function(ent) return not ent:GetIsInCombat() end)
+            local shade = GetNearest(origin, "Shade", 2, function(ent) return not ent:GetIsInCombat() and not (GetSiegeDoorOpen() and GetIsPointWithinHiveRadius(ent:GetOrigin()) ) end)
             if shade then 
                 shade:SetOrigin(origin)
                 doChain(shade)
@@ -75,7 +75,7 @@ local function On_Contam_chanceCrag(origin,imaginator)
                 doChain(entity)
             end
         else
-            local crag = GetNearest(origin, "Crag", 2, function(ent) return not ent:GetIsInCombat() end)
+            local crag = GetNearest(origin, "Crag", 2, function(ent) return not ent:GetIsInCombat() and not (GetSiegeDoorOpen() and GetIsPointWithinHiveRadius(ent:GetOrigin()) ) end)
             if crag then 
                 crag:SetOrigin(origin)
                 doChain(crag)
@@ -109,6 +109,7 @@ end
         local origin = FindFreeSpace(powerpoint:GetOrigin())
         local contam = CreateEntity(Contamination.kMapName, FindFreeSpace(origin, 1, 8), 2)
         doChain(contam)
+        SetDirectorLockedOnEntity(contam)
         local egg = CreateEntity(Egg.kMapName, FindFreeSpace(origin, 1, 8), 2)
         egg:SetHive(GetRandomHive())
 
@@ -177,6 +178,7 @@ end
                 PackRulesHere(who, who:GetOrigin(), kTechId.CatPack, self)
             elseif random == 2 then//from else to if random == 2 (trying this instead of having a break (This currently does all marines at once lol) )
                 who:ActivateNanoShield()
+                SetDirectorLockedOnEntity(who)
             end
     end
     

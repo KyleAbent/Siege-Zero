@@ -11,6 +11,9 @@ ModLoader.SetupFileHook( "lua/Onos.lua", "lua/Onos_Siege19.lua", "post" )
 
 ModLoader.SetupFileHook( "lua/DamageTypes.lua", "lua/DamageTypes_Siege19.lua", "post" )
 
+ModLoader.SetupFileHook( "lua/Spectator.lua", "lua/Spectator_Avoca.lua", "post" )
+
+
 //ModLoader.SetupFileHook( "lua/Cyst.lua", "lua/Cyst_Siege19.lua", "post" )
 
 ModLoader.SetupFileHook( "lua/VotingAddCommanderBots.lua", "lua/VoteAddCommanderBots_Siege19.lua", "post" )

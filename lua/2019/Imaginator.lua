@@ -112,10 +112,10 @@ local function GetDelay()
   if not GetSetupConcluded() then 
       return 12
    end
-  if not GetSiegeDoorOpen() then 
+  //if not GetSiegeDoorOpen() then 
       return 16
-  end
-    return 24
+  //end
+    //return 24
 end
 
 if Server then
@@ -187,6 +187,7 @@ local function OrganizedIPCheck(who, self)
         local origin = FindFreeSpace(where, 4, kInfantryPortalAttachRange)
             if origin ~= where then
             local ip = CreateEntity(InfantryPortal.kMapName, origin,  1)
+            SetDirectorLockedOnEntity(ip)
                 if not GetSetupConcluded() then 
                      ip:SetConstructionComplete()
                     //ip:GetTeam():SetTeamResources(ip:GetTeam():GetTeamResources() - cost)
@@ -202,6 +203,7 @@ local function OrganizedIPCheck(who, self)
       if self.activeArms <= 1 then
         local origin = FindFreeSpace(where, 4, kInfantryPortalAttachRange)
         local arms = CreateEntity(ArmsLab.kMapName, origin,  1)
+        SetDirectorLockedOnEntity(arms)
           if not GetSetupConcluded() then
             arms:SetConstructionComplete()
           end
@@ -228,6 +230,7 @@ local function OrganizedSentryCheck(who, self)
         local origin = FindFreeSpace(where, 1, 4)//range of battery??
             if origin ~= where then
             local sentry = CreateEntity(Sentry.kMapName, origin, 1)
+            SetDirectorLockedOnEntity(sentry)
                 if not GetSetupConcluded() then sentry:SetConstructionComplete() end
                     //sentry:GetTeam():SetTeamResources(sentry:GetTeam():GetTeamResources() - cost)
                 //end
@@ -252,7 +255,7 @@ local function HaveCCsCheckIps(self)
     OrganizedIPCheck(table.random(CommandStations), self)
 end
 
-function Imaginator:ManageMarineBeacons()
+function Imaginator:ManageMarineBeacons() // Get all Macs, make each mac weld CC?
     local chair = nil
 
     for _, entity in ientitylist(Shared.GetEntitiesWithClassname("CommandStation")) do
@@ -452,6 +455,7 @@ function Imaginator:ActualFormulaMarine()
 
                     if range >=  minrange  then
                         entity = CreateEntityForTeam(tospawn, randomspawn, 1)
+                        SetDirectorLockedOnEntity(entity)
                         if not GetSetupConcluded() then entity:SetConstructionComplete() end
                             --  if gamestarted then entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost) end
                             --BuildNotificationMessage(randomspawn, self, tospawn)
@@ -459,6 +463,7 @@ function Imaginator:ActualFormulaMarine()
                         end --
                     else -- it tonly takes 1!
                         entity = CreateEntityForTeam(tospawn, randomspawn, 1)
+                        SetDirectorLockedOnEntity(entity)
                         if not GetSetupConcluded() then entity:SetConstructionComplete() end
                             --  if gamestarted then entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost) end
                             success = true
@@ -483,6 +488,7 @@ function Imaginator:ShowWarningForToggleAliens(bool)
 
 end
 function Imaginator:Imaginations() 
+    if not GetGameStarted() then return end
     local Gamerules = GetGamerules()
     local team1Commander = Gamerules.team1:GetCommander()
     local team2Commander = Gamerules.team2:GetCommander()
@@ -518,6 +524,17 @@ end
 local function GetAlienSpawnList(self)
 
     local tospawn = {}
+    
+    if GetSiegeDoorOpen() then
+        if  self.activeCrags < 13 then
+            table.insert(tospawn, kTechId.Crag)
+        end
+        if  self.activeShades < 12 then
+            table.insert(tospawn, kTechId.Shade)
+        end
+        local finalchoice = table.random(tospawn)
+        return finalchoice
+    end
 
     if self.activeShifts < 14 then
         table.insert(tospawn, kTechId.Shift)
@@ -606,6 +623,7 @@ function Imaginator:DoBetterUpgs()
         if randomspawn then
 
             local entity = CreateEntityForTeam(tospawn, randomspawn, 2)
+            SetDirectorLockedOnEntity(entity)
             if not GetSetupConcluded() then
              entity:SetConstructionComplete()
             end
@@ -638,17 +656,21 @@ return true
 
 end
 
-local function getAlienConsBuildOrig()
+local function getAlienConsBuildOrig(techid)
 
- local random = math.random(1,3)
-  --or active gorge tunnel  exit
-  if random == 1 then
-    return GetRandomDisabledPower()
-  elseif random == 2 then 
-    return GetRandomConnectedCyst()//Chance of erroring if entity dies ?
-  elseif random == 3 then
-    return GetRandomConstructEntityNearMostRecentPlacedCyst()//Chance of erroring if entity dies ?
-  end
+    if GetSiegeDoorOpen() and techid == kTechId.Crag or techid == kTechId.Shade then//and GetRandomHive() ~= nil (if all hives are down? then game over duh)
+        return GetRandomHive()
+    else
+         local random = math.random(1,3)
+          --or active gorge tunnel  exit
+          if random == 1 then
+            return GetRandomDisabledPower()
+          elseif random == 2 then 
+            return GetRandomConnectedCyst()//Chance of erroring if entity dies ?
+          elseif random == 3 then
+            return GetRandomConstructEntityNearMostRecentPlacedCyst()//Chance of erroring if entity dies ?
+          end
+    end
  
 end
 
@@ -713,8 +735,8 @@ function Imaginator:ActualAlienFormula()
     con:ManageWhips()
 
     local randomspawn = nil
-    local spawnPointEnt  = getAlienConsBuildOrig() 
     local tospawn = GetAlienSpawnList(self) --, cost, gamestarted = GetAlienSpawnList(self)
+    local spawnPointEnt  = getAlienConsBuildOrig(tospawn) 
     local success = false
     local entity = nil
 
@@ -745,6 +767,7 @@ function Imaginator:ActualAlienFormula()
             if range >=  minrange then
                 --Print("ActualAlienFormula range range >=  minrange")
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2)
+                SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 
                 end
@@ -757,6 +780,7 @@ function Imaginator:ActualAlienFormula()
             success = true
             else -- Make 1
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2)
+                SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 
                 end

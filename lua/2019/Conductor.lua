@@ -306,6 +306,7 @@ local function ManagePlayerWeld(who, where)
     local player =  GetNearest(who:GetOrigin(), "Marine", 1, function(ent) return ent:GetIsAlive() end)
     if player then
         who:GiveOrder(   kTechId.FollowAndWeld, player:GetId(), player:GetOrigin(), nil, false, false)
+        SetDirectorLockedOnEntity(who)
     end
 end
 
@@ -353,6 +354,7 @@ function Conductor:ManageShades()
             local hive = GetRandomHive()
             if hive then
                 shade:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
+                SetDirectorLockedOnEntity(shade)
             end
         end
     end 
@@ -380,16 +382,18 @@ function Conductor:ManageCrags()
                     crag:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
                 end
             else
-                local random = math.random(1,2)
+                local random = math.random(1,2)//Third category: Moving Whip?
                 if random == 1 then
                     local power = GetNearest(crag:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and ent:GetIsDisabled() and GetLocationForPoint(crag:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin()) end ) 
                     if power then
                         crag:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
+                        SetDirectorLockedOnEntity(crag)
                     end
                     //Maybe some teammate in combat? and once not moving then doChain ?
                 else
                     if self.mostRecentCystOrig ~= self:GetOrigin() then
                         crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(self.mostRecentCystOrig, 4), nil, false, false) 
+                        SetDirectorLockedOnEntity(crag)
                     end
                 end
             end
@@ -407,7 +411,8 @@ function Conductor:ManageShifts()
             --if not moving
             local power = GetNearest(nearestof:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and ent:GetIsDisabled() and GetLocationForPoint(nearestof:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin())  end ) 
             if power then
-                nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
+                nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false)
+                SetDirectorLockedOnEntity(nearestof) 
             end
         end 
     end  
@@ -432,6 +437,7 @@ function Conductor:ManageWhips()
                local power = GetNearest(nearestof:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and not ent:GetIsDisabled()  end ) 
                if power then
                  nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
+                 SetDirectorLockedOnEntity(nearestof)
                  -- CreatePheromone(kTechId.ThreatMarker,power:GetOrigin(), 2)  if get is time up then
                end
             end 
@@ -454,12 +460,14 @@ local function GiveDrifterOrder(who, where)
         local boolean = chance >= 70
         if boolean then
             who:GiveOrder(GetDrifterBuff(), player:GetId(), player:GetOrigin(), nil, false, false)
+            SetDirectorLockedOnEntity(who)
             return
         end
     end
 
     if  structure then      
         who:GiveOrder(kTechId.Grow, structure:GetId(), structure:GetOrigin(), nil, false, false)
+        SetDirectorLockedOnEntity(who)
         return  
     end
         
