@@ -526,14 +526,16 @@ local function GetAlienSpawnList(self)
     local tospawn = {}
     
     if GetSiegeDoorOpen() then
-        if  self.activeCrags < 13 then
-            table.insert(tospawn, kTechId.Crag)
+        if self.activeCrags < 13 or self.activeShades < 12 then
+            if  self.activeCrags < 13 then
+                table.insert(tospawn, kTechId.Crag)
+            end
+            if  self.activeShades < 12 then
+                table.insert(tospawn, kTechId.Shade)
+            end
+            local finalchoice = table.random(tospawn)
+            return finalchoice
         end
-        if  self.activeShades < 12 then
-            table.insert(tospawn, kTechId.Shade)
-        end
-        local finalchoice = table.random(tospawn)
-        return finalchoice
     end
 
     if self.activeShifts < 14 then
