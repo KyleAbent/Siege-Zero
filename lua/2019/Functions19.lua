@@ -3,10 +3,10 @@ function SetDirectorLockedOnEntity(ent)
         if director:CanChange() then
              local viporigin = ent:GetOrigin()
              director:SetOrigin(viporigin)
-             director:SetOffsetAngles(ent:GetAngles()) //if iscam
-             local dir = GetNormalizedVector(viporigin - director:GetOrigin())
-             local angles = Angles(GetPitchFromVector(dir), GetYawFromVector(dir), 0)
-             director:SetOffsetAngles(angles)
+             //director:SetOffsetAngles(ent:GetAngles()) //if iscam
+             //local dir = GetNormalizedVector(viporigin - director:GetOrigin())
+             //local angles = Angles(GetPitchFromVector(dir), GetYawFromVector(dir), 0)
+             //director:SetOffsetAngles(angles)
              director:SetLockOnTarget(ent:GetId())
         end
     end

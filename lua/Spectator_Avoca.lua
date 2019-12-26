@@ -20,10 +20,13 @@ function AvocaSpectator:OnCreate()
  Spectator.OnCreate(self)
   self.lastswitch = Shared.GetTime()
   self.lockedId = Entity.invalidI 
+         if Server then
+         self:AddTimedCallback( AvocaSpectator.UpdateCamera, 1 )
+        end
 end
 function AvocaSpectator:CanChange()
     //w/ true, just wanna see the hectic camera switching instantaniously lol
-    return true //GetIsTimeUp(self.lastswitch, self.nextangle ) // or current entity is dead lol
+    return GetIsTimeUp(self.lastswitch, self.nextangle ) // or current entity is dead lol
 end
 function AvocaSpectator:SetLockOnTarget(userid)
     self.lockedId = userid
@@ -114,4 +117,9 @@ function AvocaSpectator:OverrideInput(input)
     return input
     
 end
+function AvocaSpectator:UpdateCamera()
+         self:LockAngles()
+          return true
+end
+
 Shared.LinkClassToMap("AvocaSpectator", AvocaSpectator.kMapName, networkVars)

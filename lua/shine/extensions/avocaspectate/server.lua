@@ -13,10 +13,9 @@ end
 function Plugin:CreateCommands()
 
 local function Direct( Client, Targets )
-          AutoSpectate(self)
     for i = 1, #Targets do
-    local Player = Targets[ i ]:GetControllingPlayer()
-          Player:Replace(AvocaSpectator.kMapName, 3)
+        local Player = Targets[ i ]:GetControllingPlayer()
+        Player:Replace(AvocaSpectator.kMapName, 3)
      end
 end
 
