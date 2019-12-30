@@ -43,7 +43,7 @@ function GetHasBatteryInRoom(where)
     local batteries = GetEntitiesForTeamWithinRange("SentryBattery", 1, where, 999999)
     if #batteries == 0 then return false end
     for i = 1, #batteries do
-        local ent = batteries[i]
+        local ent = batteries[i]//match name? 
         if GetLocationForPoint(ent:GetOrigin()) == GetLocationForPoint(where) then return true end
     end
 
@@ -91,7 +91,6 @@ function UpdateTypeOfHive(who)
     who:GetTeam():GetTechTree():SetTechChanged()
 
 end
-
 
 local kExtents = Vector(0.4, 0.5, 0.4) -- 0.5 to account for pathing being too high/too low making it hard to palce tunnels
 function isPathable(position)
@@ -442,20 +441,18 @@ function GetNearestMixin(origin, mixinType, teamNumber, filterFunc)
     return nearest
 end
 function GetIsRoomPowerUp(who)
- local location = GetLocationForPoint(who:GetOrigin())
-  if not location then return false end
- local powernode = GetPowerPointForLocation(location.name)
- if powernode and powernode:GetIsBuilt() and not powernode:GetIsDisabled()  then return true end
- return false
+    local location = GetLocationForPoint(who:GetOrigin())
+    if not location then return false end
+    local powernode = GetPowerPointForLocation(location.name)
+    if powernode and powernode:GetIsBuilt() and not powernode:GetIsDisabled()  then return true end
+    return false
 end
 function GetSiegeLocation(where)
 --local locations = {}
 
-
  local siegeloc = nil
 
   siegeloc = GetNearest(where, "Location", nil, function(ent) return string.find(ent.name, "siege") or string.find(ent.name, "Siege") end)
-
  
 if siegeloc then return siegeloc end
  return nil
@@ -479,7 +476,6 @@ function GetIsOriginInHiveRoom(point)
      
 end
 
-
 function GetIsTimeUp(timeof, timelimitof)
  local time = Shared.GetTime()
  local boolean = (timeof + timelimitof) < time
@@ -487,7 +483,6 @@ function GetIsTimeUp(timeof, timelimitof)
  -- if boolean == true then Print("GetTimeIsUp boolean is %s, timelimitof is %s", boolean, timelimitof) end
  return boolean
 end
-
 
 function GetSetupConcluded()
 return GetFrontDoorOpen()
@@ -500,9 +495,6 @@ function GetSiegeDoorOpen()
    return boolean
 end
 
-
-
-
 function GetSiegeDoor() --it washed away
     local entityList = Shared.GetEntitiesWithClassname("SiegeDoor")
     if entityList:GetSize() > 0 then
@@ -511,7 +503,6 @@ function GetSiegeDoor() --it washed away
     end    
     return nil
 end
-
 
 function GetImaginator() --it's fake
     local entityList = Shared.GetEntitiesWithClassname("Imaginator")

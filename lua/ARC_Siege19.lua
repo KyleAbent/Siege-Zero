@@ -100,7 +100,7 @@ local inradius =  not isSiegeOpen and ( GetIsPointWithinChairRadius(self:GetOrig
                       isSiegeOpen and (  GetIsInSiege(self) and GetIsPointWithinHiveRadius(self:GetOrigin()) )
 local shouldstop = false
 local shouldmove = not shouldstop and not moving and not inradius
-local shouldstop = moving and shouldstop
+local shouldstop = moving and inradius
 local shouldattack = inradius and not attacking 
 local shouldundeploy = attacking and not inradius and not moving
   

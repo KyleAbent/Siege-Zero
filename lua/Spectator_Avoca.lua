@@ -26,7 +26,7 @@ function AvocaSpectator:OnCreate()
 end
 function AvocaSpectator:CanChange()
     //w/ true, just wanna see the hectic camera switching instantaniously lol
-    return GetIsTimeUp(self.lastswitch, self.nextangle ) // or current entity is dead lol
+    return GetIsTimeUp(self.lastswitch, self.nextangle ) or self.lockedId == Entity.invalidI
 end
 function AvocaSpectator:SetLockOnTarget(userid)
     self.lockedId = userid
@@ -60,8 +60,9 @@ function AvocaSpectator:OnEntityChange(oldId)
     if self.lockedId == oldId then
         self.lockedId = Entity.invalidId
        self.lastswitch = Shared.GetTime()
-       self.nextangle = math.random(4,8)
-     self:ChangeView(self, self.nextangle, self.lastswitch )
+       self.nextangle = 1
+     //self:ChangeView(self, self.nextangle, self.lastswitch )
+     //switch here lol
     end    
     
 

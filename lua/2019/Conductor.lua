@@ -91,7 +91,9 @@ end
 
 if Server then
     function Conductor:OnUpdate(deltatime)
-
+    
+        if not GetGameStarted() then return end
+        
         if not self.timeLastArcSiege or self.timeLastArcSiege + 20 <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
             if GetSiegeDoorOpen() and GetIsImaginatorMarineEnabled() then 
             self:GetArcSpotForSiege()
@@ -171,7 +173,7 @@ function Conductor:Automations(isMarineEnabled,isAlienEnabled)
               self:HandoutMarineBuffs()
             end
 
-             if isMarineEnabled or isAlienEnabled and GetGameStarted() then
+             if isMarineEnabled or isAlienEnabled then
                self:AutoBuildResTowers()
              end
 
@@ -184,10 +186,8 @@ local function PowerPointStuff(who, self)
     local imaginator = GetImaginator()
     if powerpoint ~= nil then
         if imaginator:GetIsMarineEnabled() and ( powerpoint:GetIsBuilt() and not powerpoint:GetIsDisabled() ) then
-            print("PowerPointStuff return 1")
             return 1
         elseif imaginator:GetIsAlienEnabled() and ( powerpoint:GetIsDisabled() )  then
-            print("PowerPointStuff return 2")
             return 2
         end
     end
