@@ -203,10 +203,10 @@ function Plugin:ClientConfirmConnect(Client)
          AddSiegeTimer(Client)
         end
     else
-        Shared.ConsoleCommand("sh_setteam avo 2")
-           for i = 1, 5 do
-          Shared.ConsoleCommand("addbot") --REMOVE ME! LOCAL ONLY LOL
-         end
+        --Shared.ConsoleCommand("sh_setteam avo 2")
+           --for i = 1, 5 do
+          --Shared.ConsoleCommand("addbot") --REMOVE ME! LOCAL ONLY LOL
+         --end
        Shared.ConsoleCommand("sh_randomrr")
        Shared.ConsoleCommand("sh_forceroundstart")
    end
