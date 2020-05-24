@@ -23,6 +23,7 @@ local networkVars =
   activeCrags = "integer",
   activeShades = "integer",
   activeShifts = "integer",
+  activeTunnels = "integer",
 }
 
 function Imaginator:OnCreate()
@@ -40,6 +41,7 @@ function Imaginator:OnCreate()
    self.activeCrags = 0
    self.activeShades = 0
    self.activeShifts = 0
+   self.activeTunnels = 0
    for i = 1, 8 do
      Print("Imaginator created")
    end
@@ -54,6 +56,16 @@ local function NotBeingResearched(techId, who)
 
     if techId ==  kTechId.AdvancedArmoryUpgrade or techId == kTechId.UpgradeRoboticsFactory then
      return true
+    end
+    
+    if who:isa("Hive") then
+        --print("NotBeingResearched is a hive!!!")
+        return true
+    end
+    
+    if who:isa("Egg") then
+        --print("NotBeingResearched is a hive!!!")
+        return true
     end
 
     for _, structure in ientitylist(Shared.GetEntitiesWithClassname( string.format("%s", who:GetClassName()) )) do
@@ -83,6 +95,27 @@ local function ResearchEachTechButton(who)
         table.insert(techIds, kTechId.Stab )
         table.insert(techIds, kTechId.Stomp )
         table.insert(techIds, kTechId.Xenocide )
+    end
+    
+    
+    if who:isa("Hive") then
+        --print("Who is a hive!!!")
+        techIds = {}
+        table.insert(techIds, who:GetTechButtons()[5] )
+        table.insert(techIds, who:GetTechButtons()[6] )
+        table.insert(techIds, who:GetTechButtons()[7] )
+        table.insert(techIds, who:GetTechButtons()[2] )
+        table.shuffle(techIds) //else the first hive is always crag etc
+    end
+    
+    if who:isa("Egg") then
+        --print("Who is a hive!!!")
+        techIds = {}
+        table.insert(techIds, who:GetTechButtons()[5] )
+        table.insert(techIds, who:GetTechButtons()[6] )
+        table.insert(techIds, who:GetTechButtons()[7] )
+        table.insert(techIds, who:GetTechButtons()[8] )
+        table.shuffle(techIds)
     end
 
     if who:isa("Observatory") then
@@ -136,6 +169,12 @@ if Server then
                     for _, ent in ientitylist(Shared.GetEntitiesWithClassname("EvolutionChamber")) do
                         table.insert(researchables, ent)
                     end
+                    for _, ent in ientitylist(Shared.GetEntitiesWithClassname("Hive")) do
+                        table.insert(researchables, ent)
+                    end
+                    for _, ent in ientitylist(Shared.GetEntitiesWithClassname("Egg")) do
+                        table.insert(researchables, ent)
+                    end
                 end
 
                 if self.marineenabled then
@@ -166,6 +205,71 @@ if Server then
     end
 
 end //Server
+
+local function OrganizedEntranceCheck(who,self)
+
+
+    if not who:GetIsBuilt() then
+        return
+    end
+    
+    //in room or in radius?
+    
+
+        local hive = GetRandomHive()
+        if hive then
+            if not GetHasFourTunnelInHiveRoom() then
+                local tunnel = CreateEntity(TunnelEntrance.kMapName, FindFreeSpace(hive:GetOrigin(), 4, 20),  2)
+            end
+        end
+    
+end
+
+local function DropWeaponsJetpacksExos(who, self)
+
+    if not who:GetIsBuilt() then
+        return
+    end
+    
+    //if has adv armory, if has jp, if has exo.
+    local randomize = {}
+    
+    local SGSInRange = GetEntitiesForTeamWithinRange("Shotgun", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    
+    if #SGSInRange == 0 then
+        table.insert(randomize, kTechId.Shotgun)
+    end
+    local hmgsInRange = GetEntitiesForTeamWithinRange("HeavyMachineGun", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    if #hmgsInRange == 0 then
+        table.insert(randomize, kTechId.HeavyMachineGun)
+    end
+    local JPSInRange = GetEntitiesForTeamWithinRange("Jetpack", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    if #JPSInRange == 0 then
+        table.insert(randomize, kTechId.Jetpack)
+    end
+    local GLSInRange = GetEntitiesForTeamWithinRange("GrenadeLauncher", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    if #GLSInRange == 0 then
+        table.insert(randomize, kTechId.GrenadeLauncher)
+    end
+    local exosInRange = GetEntitiesForTeamWithinRange("Exosuit", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    if #exosInRange == 0 then
+        table.insert(randomize, kTechId.DropExosuit)
+    end
+    local flsInRange = GetEntitiesForTeamWithinRange("Flamethrower", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    if #exosInRange == 0 then
+        table.insert(randomize, kTechId.Flamethrower)
+    end
+    
+    
+
+    if #randomize == 0 then return end
+    
+    local entry = table.random(randomize)
+    
+    entity = CreateEntityForTeam(entry, FindFreeSpace(who:GetOrigin(),4), 1)
+    
+     
+end
 
 local function OrganizedIPCheck(who, self)
     if not who:GetIsBuilt() then
@@ -247,12 +351,22 @@ local function HaveBatteriesCheckSentrys(self)
     OrganizedSentryCheck(table.random(SentryBatterys), self)
 end
 
+local function HaveHivesCheckEntrances(self)
+    local Hives = GetEntitiesForTeam( "Hive", 2 )
+    if not Hives then
+     return
+    end
+    OrganizedEntranceCheck(table.random(Hives), self)
+end
+
+
 local function HaveCCsCheckIps(self)
     local CommandStations = GetEntitiesForTeam( "CommandStation", 1 )
     if not CommandStations then
      return
     end
     OrganizedIPCheck(table.random(CommandStations), self)
+    DropWeaponsJetpacksExos(table.random(CommandStations), self)//For now by the commandstation heh
 end
 
 function Imaginator:ManageMarineBeacons() // Get all Macs, make each mac weld CC?
@@ -326,7 +440,7 @@ local function GetMarineSpawnList(self)
             CCs = CCs + 1
         end
 
-    if CCs < 3  and CCs >= 1 then
+    if CCs < 3  and CCs >= 1 and GetSetupConcluded() then
         return kTechId.CommandStation
     end
 
@@ -358,10 +472,8 @@ local function GetMarineSpawnList(self)
       table.insert(tospawn, kTechId.SentryBattery)
     end
     ----------------------------------------------------------------------------------------------------
-    --timecheck to prevent 3 CC in one room w/o checking for such definition
     local  CommandStation = #GetEntitiesForTeam( "CommandStation", 1 )
-    local timecheck = true --( Shared.GetTime() - GetGamerules():GetGameStartTime() ) >= 60 --true
-    if timecheck and CommandStation < 3 then
+    if CommandStation < 3 then
         table.insert(tospawn, kTechId.CommandStation)
     end
 
@@ -449,7 +561,8 @@ function Imaginator:ActualFormulaMarine()
                     --    Print("tospawn is %s, location is %s, range between is %s", tospawn, GetLocationForPoint(randomspawn).name, range)
                     local minrange = nearestof.GetMinRangeAC and nearestof:GetMinRangeAC() or math.random(4,24) --nearestof:GetMinRangeAC()
                         //Can eventually move this upwards to get only rooms without these in them ugh. Rather than blocking the entire function.
-                    if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) or tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn) then
+                    if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) or tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn)
+                    or ( tospawn == kTechId.CommandStation and not GetSetupConcluded() and GetHasChairInRoom(randomspawn) ) then //Promotion spreading aboot
                         return
                     end
 
@@ -481,10 +594,16 @@ function Imaginator:MarineConstructs()
 
 return
 end
-function Imaginator:ShowWarningForToggleMarines(bool)
+function Imaginator:ShowWarningForToggleMarinesOff(bool)
 
 end
-function Imaginator:ShowWarningForToggleAliens(bool)
+function Imaginator:ShowWarningForToggleAliensOff(bool)
+
+end
+function Imaginator:ShowWarningForToggleMarinesOn(bool)
+
+end
+function Imaginator:ShowWarningForToggleAliensOn(bool)
 
 end
 function Imaginator:Imaginations() 
@@ -495,18 +614,18 @@ function Imaginator:Imaginations()
     
     if not team1Commander and not self.marineenabled then
         self.marineenabled = true
-        self:ShowWarningForToggleMarines(true)
+        self:ShowWarningForToggleMarinesOn(true)
     elseif team1Commander and self.marineenabled then
         self.marineenabled = false   
-        self:ShowWarningForToggleMarines(false)
+        self:ShowWarningForToggleMarinesOff(false)
     end
     
     if not team2Commander and not self.alienenabled then
         self.alienenabled = true
-        self:ShowWarningForToggleAliens(true)
+        self:ShowWarningForToggleAliensOn(true)
     elseif team2Commander and self.alienenabled then
         self.alienenabled = false   
-        self:ShowWarningForToggleAliens(false)
+        self:ShowWarningForToggleAliensOff(false)
     end
     
     if self.marineenabled then
@@ -552,6 +671,11 @@ local function GetAlienSpawnList(self)
 
     if  self.activeShades < 12 then
         table.insert(tospawn, kTechId.Shade)
+    end
+
+    HaveHivesCheckEntrances(self)
+    if self.activeTunnels < 4 then //this is only counting ones outside of hive room.
+        table.insert(tospawn, kTechId.Tunnel)
     end
 
     local finalchoice = table.random(tospawn)
@@ -735,6 +859,7 @@ function Imaginator:ActualAlienFormula()
     con:ManageCrags() 
     con:ManageShifts()
     con:ManageWhips()
+    con:ManageCysts()
 
     local randomspawn = nil
     local tospawn = GetAlienSpawnList(self) --, cost, gamestarted = GetAlienSpawnList(self)
@@ -768,12 +893,19 @@ function Imaginator:ActualAlienFormula()
             -- if tospawn == kTechId.NutrientMist then minrange = NutrientMist.kSearchRange end
             if range >=  minrange then
                 --Print("ActualAlienFormula range range >=  minrange")
+                
+                
+                    if tospawn == kTechId.Tunnel and GetHasTunnelInRoom(randomspawn) then
+                        return
+                    end
+                
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2)
                 SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 
                 end
-                doChain(entity)
+                --doChain(entity)
+                 local csyt = CreateEntity(Cyst.kMapName, FindFreeSpace(entity:GetOrigin(), 1, kCystRedeployRange),2)
                 -- cost = GetAlienCostScalar(self, cost)
                 --  if gamestarted then
                 --	entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost)
@@ -781,7 +913,11 @@ function Imaginator:ActualAlienFormula()
             end
             success = true
             else -- Make 1
+                    if tospawn == kTechId.Tunnel and GetHasTunnelInRoom(randomspawn) then
+                        return
+                    end
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2)
+                local csyt = CreateEntity(Cyst.kMapName, FindFreeSpace(entity:GetOrigin(), 1, kCystRedeployRange),2)
                 SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 

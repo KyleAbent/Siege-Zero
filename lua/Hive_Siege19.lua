@@ -76,28 +76,27 @@ end
 
 end --server
 
-
-//What happens if constructed with commander in hive then commander leaves and doesnt upgrade biomass?
-//Then biomass here is skipped. Ugh. AHH. Maybe on research complete.
+/*
 
 local orig_Hive_OnConstructionComplete = Hive.OnConstructionComplete
 function Hive:OnConstructionComplete()
     orig_Hive_OnConstructionComplete(self)
     local imaginator = GetImaginator()
-    if imaginator and imaginator:GetIsAlienEnabled() then
-        self.bioMassLevel = 3
+    if imaginator and ( imaginator:GetIsAlienEnabled() or not GetGameStarted() ) then
+       // self.bioMassLevel = 3
         UpdateTypeOfHive(self)
     end
 end
-
 
 local orig_Hive_OnResearchComplete = Hive.OnResearchComplete
 function Hive:OnResearchComplete()
     orig_Hive_OnResearchComplete(self)
-    if self.bioMassLevel == 3 then return end
+    //if self.bioMassLevel == 3 then return end
     local imaginator = GetImaginator()
     if imaginator:GetIsAlienEnabled() then
-        self.bioMassLevel = 3
+       // self.bioMassLevel = 3
         UpdateTypeOfHive(self)
     end
 end
+
+*/

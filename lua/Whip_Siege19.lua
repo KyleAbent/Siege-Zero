@@ -11,7 +11,10 @@ end
 if Server then
 
     function Whip:OnOrderComplete(currentOrder)     
-        doChain(self)
+        --doChain(self)
+            if not self:GetGameEffectMask(kGameEffect.OnInfestation) then
+                local cyst = CreateEntity(Cyst.kMapName, FindFreeSpace(self:GetOrigin(), 1, kCystRedeployRange),2)
+            end
     end
     
     
@@ -19,7 +22,10 @@ if Server then
         if self.moving then  
             self:ClearOrders()
             self:GiveOrder(kTechId.Stop, nil, self:GetOrigin(), nil, true, true)  
-            doChain(self)
+            --doChain(self)
+            if not self:GetGameEffectMask(kGameEffect.OnInfestation) then
+                local cyst = CreateEntity(Cyst.kMapName, FindFreeSpace(self:GetOrigin(), 1, kCystRedeployRange),2)
+            end
         end
     end
     

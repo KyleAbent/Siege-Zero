@@ -144,18 +144,27 @@ Shared.ConsoleCommand("sh_csay Front Door(s) now open!!!!")
 self:NotifyTimer( nil, "Front Door(s) now open!!!!", true)
 end
 ------------------------------------------------------------
-function Plugin:OnShowWarningForToggleMarines(bool) 
-self:NotifyAutoComm( nil, "AutoComm for Marines has been set to %s", bool, true)
+function Plugin:OnShowWarningForToggleMarinesOff() 
+self:NotifyAutoComm( nil, "AutoComm for Marines has been set to OFF", true)
 end
 ------------------------------------------------------------
-function Plugin:OnShowWarningForToggleAliens(bool) 
-self:NotifyAutoComm( nil, "AutoComm for team Aliens has been set to %s", bool, true)
+function Plugin:OnShowWarningForToggleAliensOff() 
+self:NotifyAutoComm( nil, "AutoComm for team Aliens has been set to OFF", true)
+end
+function Plugin:OnShowWarningForToggleMarinesOn() 
+self:NotifyAutoComm( nil, "AutoComm for Marines has been set to ON", true)
+end
+------------------------------------------------------------
+function Plugin:OnShowWarningForToggleAliensOn() 
+self:NotifyAutoComm( nil, "AutoComm for team Aliens has been set to ON", true)
 end
 ------------------------------------------------------------
 Shine.Hook.SetupClassHook( "NS2Gamerules", "DisplayFront", "OnFront", "PassivePost" ) 
 Shine.Hook.SetupClassHook( "NS2Gamerules", "DisplaySiege", "OnSiege", "PassivePost" ) 
-Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleMarines", "OnShowWarningForToggleMarines", "PassivePost" )
-Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleAliens", "OnShowWarningForToggleAliens", "PassivePost" )
+Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleMarinesOff", "OnShowWarningForToggleMarinesOff", "PassivePost" )
+Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleAliensOff", "OnShowWarningForToggleAliensOff", "PassivePost" )
+Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleMarinesOn", "OnShowWarningForToggleMarinesOn", "PassivePost" )
+Shine.Hook.SetupClassHook( "Imaginator", "ShowWarningForToggleAliensOn", "OnShowWarningForToggleAliensOn", "PassivePost" )
 ------------------------------------------------------------
 local function AddFrontTimer(who,NowToFront)
   if not NowToFront then 
@@ -194,6 +203,10 @@ function Plugin:ClientConfirmConnect(Client)
          AddSiegeTimer(Client)
         end
     else
+        Shared.ConsoleCommand("sh_setteam avo 2")
+           for i = 1, 5 do
+          Shared.ConsoleCommand("addbot") --REMOVE ME! LOCAL ONLY LOL
+         end
        Shared.ConsoleCommand("sh_randomrr")
        Shared.ConsoleCommand("sh_forceroundstart")
    end
@@ -429,3 +442,66 @@ local AutoCommCommand = self:BindCommand( "sh_autocomm", "autocomm", AutoComm )
 AutoCommCommand:Help( "sh_autocomm - Toggles autocomm " ) 
 ---------------------------------------------------------------
 end//CreateCommands
+
+
+local OldKillCysts
+
+local function GetCystIsRedeployable(cyst, origin)
+
+    local immune = cyst.immuneToRedeploymentTime and Shared.GetTime() <= cyst.immuneToRedeploymentTime
+    if cyst:GetDistance(origin) <= kCystRedeployRange and not immune then
+        if math.abs(cyst:GetOrigin().y - origin.y) < 2 then
+            return GetPathDistance(cyst:GetOrigin(), origin) <= kCystRedeployRange
+    end
+    end
+    
+    return false
+    
+end
+
+local function GetCystIsRedeployableLess(cyst, origin)
+
+    local immune = cyst.immuneToRedeploymentTime and Shared.GetTime() <= cyst.immuneToRedeploymentTime
+    if cyst:GetDistance(origin) <= kCystRedeployRange/2 and not immune then
+        if math.abs(cyst:GetOrigin().y - origin.y) < 2 then
+            return GetPathDistance(cyst:GetOrigin(), origin) <= kCystRedeployRange/2
+    end
+    end
+    
+    return false
+    
+end
+
+local function doOriginal(self)
+    local nearbyCysts = GetEntitiesForTeamWithinRange("Cyst", self:GetTeamNumber(), self:GetOrigin(), kCystRedeployRange)
+    for c = 1, #nearbyCysts do
+    
+        local cyst = nearbyCysts[c]
+        if cyst ~= self and GetCystIsRedeployable(cyst, self:GetOrigin()) then
+            cyst:Kill()
+        end
+        
+    end
+end
+
+local function doLess(self)
+    local nearbyCysts = GetEntitiesForTeamWithinRange("Cyst", self:GetTeamNumber(), self:GetOrigin(), kCystRedeployRange/2)
+    for c = 1, #nearbyCysts do
+    
+        local cyst = nearbyCysts[c]
+        if cyst ~= self and GetCystIsRedeployableLess(cyst, self:GetOrigin()) then
+            cyst:Kill()
+        end
+        
+    end
+end
+
+local function KillLess( self ) //GetCystIsRedeployable???
+    if not GetIsImaginatorAlienEnabled() then
+           return doOriginal(self)
+    end
+    doLess(self)
+    //else no kill for now haha
+end
+
+OldKillCysts = Shine.Hook.ReplaceLocalFunction( Cyst.OnInitialized, "DestroyNearbyCysts", KillLess )

@@ -40,3 +40,34 @@ end
 Shared.LinkClassToMap("Cyst", Cyst.kMapName, networkVars)
 
 */
+
+if Server then
+
+///:ReconnectOthers()
+
+        local orig_Cyst_GetIsActuallyConnected = Cyst.GetIsActuallyConnected
+
+        function Cyst:GetIsActuallyConnected()
+            if GetIsImaginatorAlienEnabled() then
+                return true
+            end
+              return orig_Cyst_GetIsActuallyConnected(self)
+        end
+        
+        
+    local orig_Cyst_TryToFindABetterParent = Cyst.TryToFindABetterParent
+    function Cyst:TryToFindABetterParent()
+             --print("TryToFindABetterParent ????")
+            if GetIsImaginatorAlienEnabled() and GetHasOneBuiltHive() then
+                local randomhive = GetRandomHive()
+                --print("randomhive is ", randomhive)//if randomhive ~= nil....
+                return self:ChangeParent(randomhive)
+            end
+            return orig_Cyst_TryToFindABetterParent(self)
+    end    
+        
+ function Cyst:GetCanAutoBuild()
+    return GetIsImaginatorAlienEnabled()
+end
+       
+ end //server

@@ -18,6 +18,18 @@ function GetRandomConstructEntityNearMostRecentPlacedCyst()
      return nearestof
    end
 end
+function GetHasOneBuiltHive()
+    local count = 0
+    for index, hive in ipairs(GetEntitiesForTeam("Hive", 2)) do
+        if hive:GetIsBuilt() then 
+            count = count + 1
+        end
+    end
+    if count >= 1 then
+        return true
+    end
+    return false
+end
 function GetHasThreeBuiltHives()
     local count = 0
     for index, hive in ipairs(GetEntitiesForTeam("Hive", 2)) do
@@ -44,6 +56,48 @@ function GetHasBatteryInRoom(where)
     if #batteries == 0 then return false end
     for i = 1, #batteries do
         local ent = batteries[i]//match name? 
+        if GetLocationForPoint(ent:GetOrigin()) == GetLocationForPoint(where) then return true end
+    end
+
+    return false  
+                
+end
+
+function GetHasChairInRoom(where)
+
+    local ccs = GetEntitiesForTeamWithinRange("CommandStation", 1, where, 999999)
+    if #ccs == 0 then return false end
+    for i = 1, #ccs do
+        local ent = ccs[i]//match name? 
+        if GetLocationForPoint(ent:GetOrigin()) == GetLocationForPoint(where) then return true end
+    end
+
+    return false  
+                
+end
+
+function GetHasFourTunnelInHiveRoom()
+
+    local tunnels = GetEntitiesForTeamWithinRange("TunnelEntrance", 2, GetRandomHive():GetOrigin(), 999999) //try catch in the function calling
+    if #tunnels == 0 then return false end
+    local count = 0
+    for i = 1, #tunnels do
+        local ent = tunnels[i]
+        if GetIsOriginInHiveRoom(ent:GetOrigin()) then
+           count = count + 1
+        end
+    end
+
+    return count == 4  
+                
+end
+
+function GetHasTunnelInRoom(where)
+
+    local tunnels = GetEntitiesForTeamWithinRange("TunnelEntrance", 2, where, 999999)
+    if #tunnels == 0 then return false end
+    for i = 1, #tunnels do
+        local ent = tunnels[i]
         if GetLocationForPoint(ent:GetOrigin()) == GetLocationForPoint(where) then return true end
     end
 
@@ -194,6 +248,8 @@ function doChain(entity)
     local splitPoints = GetCystPoints(entity:GetOrigin(), true, 2)
     for i = 1, #splitPoints do
         //if getIsNearHive(splitPoints[i]) or ( not getHasCystNear(splitPoints[i]) and not GetIsPointOnInfestation(splitPoints[i]) ) then
+            local cyst = GetEntitiesWithinRange("Cyst",where, kCystRedeployRange)
+            if not (#cyst >=1) then 
             local csyt = CreateEntity(Cyst.kMapName,splitPoints[i],2) //FindFreeSpace(splitPoints[i], 1, 7), 2)
             if not GetSetupConcluded() then csyt:SetConstructionComplete() end
             if i == #splitPoints then //last one
@@ -201,7 +257,7 @@ function doChain(entity)
                 Print("Setting Conductor most recent cyst origin")
                 conductor:SetMostRecentCystOrigin(splitPoints[i])
             end 
-        //end
+        end
     end
 end
 function GetIsPointWithinTechPointRadius(point)     
