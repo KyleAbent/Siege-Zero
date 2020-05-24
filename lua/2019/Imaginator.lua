@@ -266,7 +266,7 @@ local function DropWeaponsJetpacksExos(who, self)
     
     local entry = table.random(randomize)
     
-    entity = CreateEntityForTeam(entry, FindFreeSpace(who:GetOrigin(),4), 1)
+    entity = CreateEntityForTeam(entry, FindFreeSpace(who:GetOrigin(),4, kInfantryPortalAttachRange), 1)
     
      
 end

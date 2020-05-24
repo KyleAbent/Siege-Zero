@@ -113,7 +113,7 @@ if Server then
             end
         end
 
-        if not self.phaseCannonTime or self.phaseCannonTime + math.random(23,69) <= Shared.GetTime() then
+        if not self.phaseCannonTime or self.phaseCannonTime + math.random(27,90) <= Shared.GetTime() then
             if GetIsImaginatorAlienEnabled() then
                 self:ContaminationSpawnTimer()
                 self.phaseCannonTime = Shared.GetTime()
