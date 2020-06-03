@@ -101,7 +101,7 @@ end
 function Hive:DoNew() 
     local power = GetRandomConnectedCyst() //GetRandomDisabledPower()
     if not power then
-        print("Hive DoNew power not found???")
+        //print("Hive DoNew power not found???")
         return
     end
     local origin = power:GetOrigin()
@@ -167,7 +167,7 @@ function Hive:DoNew()
 end
 function Hive:GenerateEggSpawnsModified()
     //lets see how much it drains perf to recalculate egg spawns. With limit beyond the count/clamp. heh.ActualAlienFormula
-    print("Hive GenerateEggSpawnsModified")
+    //print("Hive GenerateEggSpawnsModified")
     self.eggSpawnPoints = { }
     self:DoOriginal()
     self:DoNew()

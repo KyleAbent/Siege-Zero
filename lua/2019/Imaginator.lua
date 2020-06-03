@@ -179,7 +179,7 @@ if Server then
     function Imaginator:OnUpdate(deltatime)
 
         if not  self.alienspawnLoc or self.alienspawnLoc + 30 <= Shared.GetTime() then
-            print("Imaginator alienspawnLoc!!!!")
+            //print("Imaginator alienspawnLoc!!!!")
             local con = GetConductor()
                 con:ManageEggSpawnLocs()
             self.alienspawnLoc = Shared.GetTime()
@@ -433,22 +433,30 @@ function Imaginator:ManageMarineBeacons() // Get all Macs, make each mac weld CC
 
 end
 
-local function ManageRoboticFactories()
+local function ManageRoboticFactories() //If bad perf can be modified to do one robo a time rather than all heh. Or other ways rather than for looping every. lol.
     local ARCRobo = {} --ugh
-
+    local  macs = GetEntitiesForTeam( "MAC", 1 )
+    local isSiege = GetSiegeDoorOpen()
     --Because researcher will spawn macs.
     for index, robo in ipairs(GetEntitiesForTeam("RoboticsFactory", 1)) do
+        if robo:GetIsBuilt() and not robo.open and not robo:GetIsResearching() and robo:GetIsPowered() then
+            //Prioritize Macs if not siege room open
+            if not isSiege and not #macs or #macs <6 then // Make this cost tres?
+                 robo:OverrideCreateManufactureEntity(kTechId.MAC)
+                //Well the way this is written, if two robos calculate this at once. at 5 macs. <6 .Then both create macs at same time. 7 macs.
+                //This can be moved down below with arc spawn.
+            else
+                if  robo:GetTechId() ~= kTechId.ARCRoboticsFactory then
+                    local techid = kTechId.UpgradeRoboticsFactory
+                    local techNode = robo:GetTeam():GetTechTree():GetTechNode( techid )
+                    robo:SetResearching(techNode, robo)
+                end
 
-        if  robo:GetTechId() ~= kTechId.ARCRoboticsFactory and robo:GetIsBuilt() and not robo:GetIsResearching() then
-            local techid = kTechId.UpgradeRoboticsFactory
-            local techNode = robo:GetTeam():GetTechTree():GetTechNode( techid )
-            robo:SetResearching(techNode, robo)
-        end
-
-        if robo:GetTechId() == kTechId.ARCRoboticsFactory and not robo.open then
-            table.insert(ARCRobo, robo)
-        end --ugh
-
+                if robo:GetTechId() == kTechId.ARCRoboticsFactory then
+                    table.insert(ARCRobo, robo)
+                end --ugh
+           end
+         end
     end
 
     --if ( not GetHasThreeChairs() and not GetFrontDoorOpen() ) then return end

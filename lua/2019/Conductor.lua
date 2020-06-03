@@ -38,7 +38,7 @@ function Conductor:SetMostRecentCyst(cystid)
 end
 */    
 function Conductor:ManageEggSpawnLocs()
-    print("Conductor ManageEggSpawnLocs")
+    //print("Conductor ManageEggSpawnLocs")
     local hive = GetRandomHive()
     if not hive then return end
     hive:GenerateEggSpawnsModified()
@@ -319,7 +319,15 @@ local function ManagePlayerWeld(who, where)
         SetDirectorLockedOnEntity(who)
     end
 end
-
+local function ManagePowerMac(who, where)
+    print("ManagePowerMac")
+    local power =  GetNearest(who:GetOrigin(), "Powerpoint", 1, function(ent) return not ent:GetIsBuilt() and not GetIsInSiege(ent) end) //Not in siege and siege not open .. for not just not siege.
+    if power then
+        print("ManagePowerMac found power")
+        who:GiveOrder(kTechId.Move, nil, FindFreeSpace(power:GetOrigin(),4), nil, true, true)
+        SetDirectorLockedOnEntity(who)
+    end
+end
 local function ResearchMacIfPossible(who, where)
     local robo = FindNonBusyRoboticsFactory()
     if robo then
@@ -333,21 +341,21 @@ end
 
 function Conductor:ManageMacs()
 
-    local cc = GetRandomCC()
+   
     local  macs = GetEntitiesForTeam( "MAC", 1 )
-
-    if cc then
-        local where = cc:GetOrigin()
-        if not #macs or #macs <6 then
-            //CreateEntity(MAC.kMapName, FindFreeSpace(where), 1)
-            ResearchMacIfPossible(self)
-        end
-    end
+    local isSetup = not GetFrontDoorOpen()
+    
+    if #macs == 0 then return end
 
     for i = 1, #macs do
         local mac = macs[i]
         if not mac:GetHasOrder() then
-            ManagePlayerWeld(mac, mac:GetOrigin())
+            local random = math.random(1,2)
+            if random == 1 or isSetup then
+                ManagePlayerWeld(mac, mac:GetOrigin())
+            else
+                ManagePowerMac(mac, mac:GetOrigin())
+            end
             break//One at a time for perf? lol
         end
     end
@@ -577,7 +585,7 @@ function Conductor:ManageWhips()
             
                -- if not moving
                local power = GetNearest(nearestof:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and not ent:GetIsDisabled()  end ) 
-               if power then
+               if not isSetup and power then
                  nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
                  SetDirectorLockedOnEntity(nearestof)
                  -- CreatePheromone(kTechId.ThreatMarker,power:GetOrigin(), 2)  if get is time up then
