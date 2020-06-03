@@ -21,12 +21,12 @@ function Crag:JustWavedNowSetTimer()
 end
 
 local function ManageHealWave(self)
-      for _, entity in ipairs(GetEntitiesWithinRange("Live", self:GetOrigin(), Crag.kHealRadius)) do
-                 if not self:GetIsOnFire() and GetIsUnitActive(self) and entity:GetIsInCombat() and entity:GetHealthScalar() <= .9  then
+    for _, entity in ipairs( GetEntitiesWithMixinForTeamWithinRange("Combat", 2, self:GetOrigin(),Crag.kHealRadius) ) do
+                 if entity ~= self and entity:GetIsInCombat() and entity:GetHealthScalar() <= .9  then
                          self:TriggerHealWave()
-                         if self.moving then 
-                            self:ClearOrders()
-                        end
+                         //if self.moving then 
+                            //self:ClearOrders()
+                        //end
                         self:JustWavedNowSetTimer()
                         break//Only trigger once , not for every ... lol
                 end
@@ -34,7 +34,7 @@ local function ManageHealWave(self)
 end
 
 function Crag:InstructSpecificRules()
-    if self:GetIsWaveAllowed() then
+    if self:GetIsWaveAllowed() and not self:GetIsOnFire() and GetIsUnitActive(self) then
         ManageHealWave(self)
     end
 end
@@ -50,22 +50,5 @@ end
 	  end
 end
 
-if Server then
-
-    function Crag:OnOrderComplete(currentOrder)
-        if currentOrder == kTechId.Move then 
-            doChain(self)
-        end
-    end
-    
-    function Crag:OnEnterCombat() 
-        if self.moving then  
-            self:ClearOrders()
-            self:GiveOrder(kTechId.Stop, nil, self:GetOrigin(), nil, true, true)  
-            doChain(self)
-        end
-    end
-
-end
 
 Shared.LinkClassToMap("Crag", Crag.kMapName, networkVars)

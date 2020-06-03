@@ -80,6 +80,8 @@ end
 
 local function ResearchEachTechButton(who)
 
+    //Expensive as game goes on
+
     local techIds = who:GetTechButtons() or {}
 
     if who:isa("EvolutionChamber") then
@@ -101,11 +103,11 @@ local function ResearchEachTechButton(who)
     if who:isa("Hive") then
         --print("Who is a hive!!!")
         techIds = {}
-        table.insert(techIds, who:GetTechButtons()[5] )
-        table.insert(techIds, who:GetTechButtons()[6] )
-        table.insert(techIds, who:GetTechButtons()[7] )
+        --table.insert(techIds, who:GetTechButtons()[5] )
+        --table.insert(techIds, who:GetTechButtons()[6] )
+        --table.insert(techIds, who:GetTechButtons()[7] )
         table.insert(techIds, who:GetTechButtons()[2] )
-        table.shuffle(techIds) //else the first hive is always crag etc
+        --table.shuffle(techIds) //else the first hive is always crag etc
     end
     
     if who:isa("Egg") then
@@ -122,6 +124,14 @@ local function ResearchEachTechButton(who)
         techIds = {}
         table.insert(techIds, kTechId.PhaseTech ) --advancedbeacon
     end
+
+    
+   // if who:isa("Armory") then
+        ///if not has shotgun then
+    
+   // end
+
+
 
     for _, techId in ipairs(techIds) do
         if techId ~= kTechId.None then
@@ -151,9 +161,37 @@ local function GetDelay()
     //return 24
 end
 
+function Imaginator:GuideLostBots()
+    //Marines
+    local door = GetFrontDoor()
+    if not door then return end
+                       for _, marine in ientitylist(Shared.GetEntitiesWithClassname("Marine")) do
+                        //if not in front room and if client is virtual
+                        marine:GiveOrder(kTechId.Move, nil, door:GetOrigin(), nil, false, false) 
+                    end
+    
+    
+    //Aliens
+        CreatePheromone(kTechId.ThreatMarker,door:GetOrigin(), 2)
+end
+
 if Server then
     function Imaginator:OnUpdate(deltatime)
 
+        if not  self.alienspawnLoc or self.alienspawnLoc + 30 <= Shared.GetTime() then
+            print("Imaginator alienspawnLoc!!!!")
+            local con = GetConductor()
+                con:ManageEggSpawnLocs()
+            self.alienspawnLoc = Shared.GetTime()
+        end
+        
+        if self.marineenabled and (not  self.timeLastGuideLostBots or self.timeLastGuideLostBots + 30 <= Shared.GetTime() ) then
+            if not GetSetupConcluded() then
+                self:GuideLostBots()
+            end
+            self.timeLastGuideLostBots = Shared.GetTime()
+        end
+        
         if not  self.timeLastImaginations or self.timeLastImaginations + GetDelay() <= Shared.GetTime() then
             self.timeLastImaginations = Shared.GetTime()
             self:Imaginations()
@@ -227,6 +265,9 @@ end
 
 local function DropWeaponsJetpacksExos(who, self)
 
+
+        //This is bad not to have a cap for spawning haha. Gotta add a limit somewhere. By count in global map as well.ActualAlienFormula
+        
     if not who:GetIsBuilt() then
         return
     end
@@ -234,29 +275,29 @@ local function DropWeaponsJetpacksExos(who, self)
     //if has adv armory, if has jp, if has exo.
     local randomize = {}
     
-    local SGSInRange = GetEntitiesForTeamWithinRange("Shotgun", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    local SGSInRange = GetEntitiesForTeamWithinRange("Shotgun", 1, who:GetOrigin(), 99999999)
     
-    if #SGSInRange == 0 then
+    if #SGSInRange < 6 then
         table.insert(randomize, kTechId.Shotgun)
     end
-    local hmgsInRange = GetEntitiesForTeamWithinRange("HeavyMachineGun", 1, who:GetOrigin(), kInfantryPortalAttachRange)
-    if #hmgsInRange == 0 then
+    local hmgsInRange = GetEntitiesForTeamWithinRange("HeavyMachineGun", 1, who:GetOrigin(), 99999999)
+    if #hmgsInRange < 6 then
         table.insert(randomize, kTechId.HeavyMachineGun)
     end
-    local JPSInRange = GetEntitiesForTeamWithinRange("Jetpack", 1, who:GetOrigin(), kInfantryPortalAttachRange)
-    if #JPSInRange == 0 then
+    local JPSInRange = GetEntitiesForTeamWithinRange("Jetpack", 1, who:GetOrigin(), 99999999)
+    if #JPSInRange < 6 then
         table.insert(randomize, kTechId.Jetpack)
     end
-    local GLSInRange = GetEntitiesForTeamWithinRange("GrenadeLauncher", 1, who:GetOrigin(), kInfantryPortalAttachRange)
-    if #GLSInRange == 0 then
+    local GLSInRange = GetEntitiesForTeamWithinRange("GrenadeLauncher", 1, who:GetOrigin(), 99999999)
+    if #GLSInRange < 6 then
         table.insert(randomize, kTechId.GrenadeLauncher)
     end
-    local exosInRange = GetEntitiesForTeamWithinRange("Exosuit", 1, who:GetOrigin(), kInfantryPortalAttachRange)
-    if #exosInRange == 0 then
+    local exosInRange = GetEntitiesForTeamWithinRange("Exosuit", 1, who:GetOrigin(), 99999999)
+    if #exosInRange < 6 then
         table.insert(randomize, kTechId.DropExosuit)
     end
-    local flsInRange = GetEntitiesForTeamWithinRange("Flamethrower", 1, who:GetOrigin(), kInfantryPortalAttachRange)
-    if #exosInRange == 0 then
+    local flsInRange = GetEntitiesForTeamWithinRange("Flamethrower", 1, who:GetOrigin(), 99999999)
+    if #exosInRange < 6  then
         table.insert(randomize, kTechId.Flamethrower)
     end
     

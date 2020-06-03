@@ -37,6 +37,12 @@ function Conductor:SetMostRecentCyst(cystid)
     self.mostRecentCyst = cystid//Do I have to hook CystPreOnKill, call cond, get most recent cyst id.. if match then set back to invalid? Hm. Not Sure. Ah.
 end
 */    
+function Conductor:ManageEggSpawnLocs()
+    print("Conductor ManageEggSpawnLocs")
+    local hive = GetRandomHive()
+    if not hive then return end
+    hive:GenerateEggSpawnsModified()
+end
 function Conductor:SetMostRecentCystOrigin(vector)
     self.mostRecentCystOrig = vector//So I don't have to worry about entity id with cyst and all that hehe
 end
@@ -314,6 +320,17 @@ local function ManagePlayerWeld(who, where)
     end
 end
 
+local function ResearchMacIfPossible(who, where)
+    local robo = FindNonBusyRoboticsFactory()
+    if robo then
+        //SetDirectorLockedOnEntity(who)
+        local tree = GetTechTree(1)
+        local techNode = tree:GetTechNode(kTechId.MAC)
+        assert(techNode ~= nil)
+        robo:SetResearching(techNode, robo)
+    end
+end
+
 function Conductor:ManageMacs()
 
     local cc = GetRandomCC()
@@ -322,7 +339,8 @@ function Conductor:ManageMacs()
     if cc then
         local where = cc:GetOrigin()
         if not #macs or #macs <6 then
-            CreateEntity(MAC.kMapName, FindFreeSpace(where), 1)
+            //CreateEntity(MAC.kMapName, FindFreeSpace(where), 1)
+            ResearchMacIfPossible(self)
         end
     end
 
@@ -337,9 +355,42 @@ function Conductor:ManageMacs()
 end
 
 function Conductor:ManageShades()
+    local shades = GetEntitiesForTeam( "Shade", 2 )
+    /////////////During Setup/////////////////////////////////////////
+
+    if not GetSiegeDoorOpen() then 
+    
+        local count = 0
+        local max = math.random(1,4)
+        
+        for i = 1, #shades do
+            local shade = shades[i]
+                                                            
+            local nonCloaked = GetNearestMixin(shade:GetOrigin(), "Cloakable", 2, function(ent) return not ent:GetIsCloaked() and ent ~= self end)
+            //print("ManageShades Shade Loop")
+            if nonCloaked then
+                //return nonCloaked
+                 //print("ManageShades Shade Loop Move Order")
+                shade:GiveOrder(kTechId.Move, nil, FindFreeSpace(nonCloaked:GetOrigin(), 4), nil, false, false) 
+                //shade:SetOrigin(nonCloaked:GetOrigin())
+                count = count + 1
+                if count == max then
+                    return
+                end
+            end
+        end
+        
+    end
+    
+    ////////////During Front Open//////////////////////////////////////
+
+    //Same as setup for now
+
+
+
+   /////////////////////During Siege////////////////////////////////////////
     local random = math.random(1,4)
     if not GetSiegeDoorOpen() then return end//for now just during siege
-    local shades = GetEntitiesForTeam( "Shade", 2 )
 
     for i = 1, random do --maybe time delay ah
         local hive = GetRandomHive()
@@ -362,78 +413,130 @@ function Conductor:ManageShades()
             end
         end
     end 
+    
+    
+end
+
+
+local function findFrontDestination(self,who)
+                    local door = GetNearest(who:GetOrigin(), "FrontDoor", nil,  function(ent) return ent:isa("FrontDoor") and GetLocationForPoint(who:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin()) end ) 
+                    if door then
+                        return door
+                    end
+                    return false
+end
+
+local function findDestinationForAlienConst(self,who)
+    
+    if GetSiegeDoorOpen() and who:isa("Crag") or who:isa("Shift") and not GetIsPointWithinHiveRadiusForHealWave(who:GetOrigin()) then
+        local hive = GetRandomHive()
+        if hive then
+            return hive
+        end
+    end
+
+    //Shift/Crag : Any Power/In Combat Player/Structure
+    local random = math.random(1,2)
+    if random == 1 then
+        local power = GetNearest(who:GetOrigin(), "PowerPoint", 1,  function(ent) return GetLocationForPoint(who:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin()) end ) 
+        if power then
+            return power
+        end
+    else
+        local inCombat = GetNearestMixin(who:GetOrigin(), "Combat", 2, function(ent) return ent:GetIsInCombat() end)
+        if inCombat then
+            return inCombat
+        end
+    end
+    
 end
 
 
 function Conductor:ManageCrags()
 
-    local random = math.random(1,4)
-    if not GetFrontDoorOpen() then return end
-    local crags = GetEntitiesForTeam( "Crag", 2 )
+local count = 0
+local max = math.random(1,4)
+local crags = GetEntitiesForTeam( "Crag", 2 )
+table.shuffle(crags)
 
-    for i = 1, random do --maybe time delay ah
-        local hive = GetRandomHive()
-        local crag = table.random(crags)
-        if crag then
-            --if moving then like arc instruct specificrules
-            crag:InstructSpecificRules()
-            if crag.moving then
-                return 
-            end
-            if GetSiegeDoorOpen() and not GetIsPointWithinHiveRadiusForHealWave(crag:GetOrigin()) then
-                local hive = GetRandomHive()
-                if hive then
-                    crag:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
-                end
-            else
-                local random = math.random(1,2)//Third category: Moving Whip?
-                if random == 1 then
-                    local power = GetNearest(crag:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and ent:GetIsDisabled() and GetLocationForPoint(crag:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin()) end ) 
-                    if power then
-                        crag:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
-                        SetDirectorLockedOnEntity(crag)
-                    end
-                else
-                    local inCombat = GetNearestMixin(crag:GetOrigin(), "Combat", 2, function(ent) return ent:GetIsInCombat() end)
-                    if inCombat then
-                        crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(inCombat:GetOrigin(), 4), nil, false, false) 
-                        SetDirectorLockedOnEntity(crag)
-                    end
+    for i = 1, #crags do 
+        local crag = crags[i]
+        crag:InstructSpecificRules()
+        if not crag.moving then
+            local isSetup = not GetFrontDoorOpen() 
+            if isSetup then 
+               if not GetIsInFrontDoorRoom(crag) then
+                //print("ManageCrags isSetup and not GetIsInFrontDoorRoom[A]")
+                    local door = findFrontDestination(self,crag)
+                    if door then
+                            crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(door:GetOrigin(), 4), nil, false, false) 
+                            //print("ManageCrags isSetup and not GetIsInFrontDoorRoom GiveOrder Move Door [BBBBBBBBBBBBBBBBB]")
+                        return 
+                    end 
+                    return//Don't look for anything else
                 end
             end
-        end 
-    end  
+        
+            local destination = findDestinationForAlienConst(self, crag)
+            if destination then
+                crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(destination:GetOrigin(), 4), nil, false, false) 
+                count = count + 1
+                if not isSetup and count == max then
+                    return
+                end
+            end
+         end
+    end 
+    
 end
 
 function Conductor:ManageShifts()
-    if not GetFrontDoorOpen() then return end
-    local random = math.random(1,4)
-    for i = 1, random do --maybe time delay ah
-        local hive = GetRandomHive()
-        local nearestof = GetNearest(hive:GetOrigin(), "Shift", 2, function(ent) return ent:GetIsBuilt() and ( ent.GetIsInCombat and not ent:GetIsInCombat()  and not ent.moving )  end) //and not ent:GetIsACreditStructure()
-        if nearestof then
-            --if not moving
-            local power = GetNearest(nearestof:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and ent:GetIsDisabled() and GetLocationForPoint(nearestof:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin())  end ) 
-            if power then
-                nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false)
-                SetDirectorLockedOnEntity(nearestof) 
+
+local count = 0
+local max = math.random(1,4)
+local crags = GetEntitiesForTeam( "Shift", 2 )
+table.shuffle(crags)
+
+    for i = 1, #crags do 
+        local crag = crags[i]
+        //crag:InstructSpecificRules()
+        if not crag.moving then
+            local isSetup = not GetFrontDoorOpen() 
+            if isSetup then 
+                if not GetIsInFrontDoorRoom(crag) then
+                    local door = findFrontDestination(self,crag)
+                    if door then
+                            crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(door:GetOrigin(), 4), nil, false, false) 
+                        return 
+                    end 
+                    return//Don't look for anything else
+                end
             end
-        end 
-    end  
+        
+            local destination = findDestinationForAlienConst(self, crag)
+            if destination then
+                crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(destination:GetOrigin(), 4), nil, false, false) 
+                count = count + 1
+                if not isSetup and count == max then
+                    return
+                end
+            end
+         end
+    end 
 end
 
 function Conductor:ManageCysts()
     --print("ManageCysts")
     local cystsMax = 0
-    
+    local doMax = math.random(1,4)
      local noncysted = {}
      for _, infestable in ipairs(GetEntitiesWithMixinForTeam("InfestationTracker", 2)) do
         --print("found something to check for infestation")
-        if cystsMax < 4 and not infestable:GetGameEffectMask(kGameEffect.OnInfestation) then
+        if cystsMax < doMax and not infestable:GetGameEffectMask(kGameEffect.OnInfestation) then
             --print("Found something not on infestation")
             table.insert(noncysted, infestable)
             cystsMax = cystsMax + 1
-            if cystsMax == 4 then break end
+            if cystsMax == doMax then break end
         end
      end
     
@@ -453,20 +556,25 @@ end
 
 
 function Conductor:ManageWhips()
-
-    if not GetFrontDoorOpen() then return end
-       --mindfuck would be getnearest built node that is beyond the arc radius of the closest arc to that node. HAH.
-       --local powerpoint = GetRandomActivePower() 
        
        --gonna affect contam whip etc
        local random = math.random(1,4)
-      
+       local isSetup = not GetFrontDoorOpen() 
        --leave min around hive not all leave. hm.
 
        for i = 1, random do --maybe time delay ah
            local hive = GetRandomHive()--if hive then or return chair if no hive lol
            local nearestof = GetNearest(hive:GetOrigin(), "Whip", 2, function(ent) return ent:GetIsBuilt() and ( ent.GetIsInCombat and not ent:GetIsInCombat() and not ent.moving )  end)
             if nearestof then
+                    if isSetup then
+                            local door = findFrontDestination(self,nearestof)
+                            if door then
+                                nearestof:GiveOrder(kTechId.Move, door:GetId(), FindFreeSpace(door:GetOrigin(), 4), nil, false, false) 
+                                SetDirectorLockedOnEntity(nearestof) 
+                            return
+                        end
+                    end
+            
                -- if not moving
                local power = GetNearest(nearestof:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and not ent:GetIsDisabled()  end ) 
                if power then

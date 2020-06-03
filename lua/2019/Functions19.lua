@@ -18,6 +18,19 @@ function GetRandomConstructEntityNearMostRecentPlacedCyst()
      return nearestof
    end
 end
+function FindNonBusyRoboticsFactory()
+    local count = 0
+    robos = {}
+    for index, robofa in ipairs(GetEntitiesForTeam("RoboticsFactory", 1)) do
+        if  robofa:GetIsBuilt() and not robofa:GetIsResearching() and not robofa.open then 
+            table.insert(robos,  robofa)
+        end
+    end
+    if count >= 1 then
+        return table.random(robofa)
+    end
+    return false
+end
 function GetHasOneBuiltHive()
     local count = 0
     for index, hive in ipairs(GetEntitiesForTeam("Hive", 2)) do
@@ -73,6 +86,27 @@ function GetHasChairInRoom(where)
     end
 
     return false  
+                
+end
+
+function GetIsInFrontDoorRoom(who)
+
+    local door = GetNearest(who:GetOrigin(), "FrontDoor", nil,  function(ent) return ent:isa("FrontDoor") and GetLocationForPoint(who:GetOrigin()) == GetLocationForPoint(ent:GetOrigin()) end ) // or within range a room over?
+    if door then
+        return true
+    end
+
+    return false 
+                
+end
+
+function GetFrontDoor()
+
+    local ccs = {}
+    for _, cc in ientitylist(Shared.GetEntitiesWithClassname("FrontDoor")) do
+        if cc then table.insert(ccs,cc) end
+    end
+    return table.random(ccs)
                 
 end
 
@@ -172,7 +206,7 @@ end
 function GetRandomDisabledPower()
     local powers = {}
     for _, power in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
-        if  power:GetIsBuilt() and power:GetIsDisabled() then  table.insert(powers,power)  end
+        if  not power:GetIsBuilt() and not GetIsInSiege(power) then  table.insert(powers,power)  end
     end
     if #powers == 0 then return nil end
     local power = table.random(powers)

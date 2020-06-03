@@ -7,6 +7,7 @@ ModLoader.SetupFileHook( "lua/Location.lua", "lua/Location_Siege.lua", "post" )
 ModLoader.SetupFileHook( "lua/Hive.lua", "lua/Hive_Siege19.lua", "post" )
 ModLoader.SetupFileHook( "lua/Marine.lua", "lua/Marine_Siege19.lua", "post" )
 ModLoader.SetupFileHook( "lua/JetpackMarine.lua", "lua/JetpackMarine_Siege19.lua", "post" )
+ModLoader.SetupFileHook( "lua/Jetpack.lua", "lua/Jetpack_Siege19.lua", "post" )
 ModLoader.SetupFileHook( "lua/Onos.lua", "lua/Onos_Siege19.lua", "post" )
 
 ModLoader.SetupFileHook( "lua/DamageTypes.lua", "lua/DamageTypes_Siege19.lua", "post" )

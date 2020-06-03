@@ -12,13 +12,13 @@ local function On_Contam_chanceWhip(origin,imaginator)
             random = math.random(1,100)
             if random <= 50 then
                 entity:SetConstructionComplete()
-                doChain(entity)
+                //doChain(entity)
             end
         else
             local whip = GetNearest(origin, "Whip", 2, function(ent) return not ent:GetIsInCombat() end)
             if whip  then 
                 whip:SetOrigin(origin)
-                doChain(whip)
+                //doChain(whip)
                 return 
             end
         end
@@ -32,13 +32,13 @@ local function On_Contam_chanceShift(origin,imaginator)
             random = math.random(1,100)
             if random <= 50 then
                 entity:SetConstructionComplete()
-                doChain(entity)
+                //doChain(entity)
             end
         else
             local shift = GetNearest(origin, "Shift", 2, function(ent) return not ent:GetIsInCombat() end)
             if shift then 
                 shift:SetOrigin(origin)
-                doChain(shift)
+                //doChain(shift)
                 return 
             end
         end
@@ -52,13 +52,13 @@ local function On_Contam_chanceShade(origin,imaginator)
             random = math.random(1,100)
             if random <= 50 then
                 entity:SetConstructionComplete()
-                doChain(entity)
+                //doChain(entity)
             end
         else
             local shade = GetNearest(origin, "Shade", 2, function(ent) return not ent:GetIsInCombat() and not (GetSiegeDoorOpen() and GetIsPointWithinHiveRadius(ent:GetOrigin()) ) end)
             if shade then 
                 shade:SetOrigin(origin)
-                doChain(shade)
+                //doChain(shade)
                 return 
             end
         end
@@ -108,7 +108,9 @@ end
 
         local origin = FindFreeSpace(powerpoint:GetOrigin())
         local contam = CreateEntity(Contamination.kMapName, FindFreeSpace(origin, 1, 8), 2)
-        doChain(contam)
+        //doChain(contam)
+        CreatePheromone(kTechId.ThreatMarker,contam:GetOrigin(), 2)
+        //if not bot :getisincombat then setorigin
         SetDirectorLockedOnEntity(contam)
         local egg = CreateEntity(Egg.kMapName, FindFreeSpace(origin, 1, 8), 2)
         egg:SetHive(GetRandomHive())
