@@ -205,8 +205,17 @@ end
 
 function GetRandomDisabledPower()
     local powers = {}
+    local isSetup = not GetSetupConcluded()
     for _, power in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
-        if  not power:GetIsBuilt() and not GetIsInSiege(power) then  table.insert(powers,power)  end
+        if power:GetIsDisabled() and not GetIsInSiege(power) then
+            if isSetup then // I don't want rooms be built which are yet to be undetermined in setup. ugh. players mark ownership by entering room. then spawn.
+                if power:GetHasBeenToggledDuringSetup() then
+                    table.insert(powers,power)
+                end
+            else
+                table.insert(powers,power)
+            end
+        end
     end
     if #powers == 0 then return nil end
     local power = table.random(powers)
@@ -398,6 +407,7 @@ function GetRandomHive()
     return table.random(hives)
 end
 
+/*
 function FindPosition(location, searchEnt, teamnum)
 
     if not location or #location == 0  then
@@ -433,6 +443,9 @@ function FindPosition(location, searchEnt, teamnum)
 
     return actualWhere
  end
+  */
+  
+  
 function GetHasThreeChairs()
     local CommandStations = #GetEntitiesForTeam( "CommandStation", 1 )
     if CommandStations >= 3 then
@@ -460,10 +473,10 @@ function InsideLocation(ents, teamnum)
     if #ents == 0  then return origin end
     for i = 1, #ents do
         local entity = ents[i]   
-        if teamnum == 2 then
-            if entity:isa("Alien") and entity:GetIsAlive() and isPathable( entity:GetOrigin() ) then
-                return FindFreeSpace(entity:GetOrigin(), math.random(2, 4), math.random(8,24), true)
-            end
+            if teamnum == 2 then
+                if entity:isa("Alien") and entity:GetIsAlive() and isPathable( entity:GetOrigin() ) then
+                    return FindFreeSpace(entity:GetOrigin(), math.random(2, 4), math.random(8,24), true)
+                end
             elseif teamnum == 1 then
                 if entity:isa("Marine") and entity:GetIsAlive() and isPathable( entity:GetOrigin() ) then
                     return FindFreeSpace(entity:GetOrigin(), math.random(2,4), math.random(8,24), false )
@@ -475,7 +488,15 @@ end
 function GetRandomActivePower()//bool notSiege, if notSiege true then.. prevent grabbing siege powerpoint..?
       local powers = {}
       for _, power in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
-            if power:GetIsBuilt() and not power:GetIsDisabled() then table.insert(powers,power) end//and not in siege ? Hm?
+         if power:GetIsBuilt() and not power:GetIsDisabled() then
+                if isSetup then // I don't want rooms be built which are yet to be undetermined in setup. ugh. players mark ownership by entering room. then spawn.
+                    if power:GetHasBeenToggledDuringSetup() then
+                        table.insert(powers,power)
+                    end
+                else
+                     table.insert(powers,power) //and not in siege ? Hm?
+                end
+          end
         end
         return table.random(powers)
 end
@@ -535,6 +556,15 @@ function GetIsRoomPowerUp(who)
     if not location then return false end
     local powernode = GetPowerPointForLocation(location.name)
     if powernode and powernode:GetIsBuilt() and not powernode:GetIsDisabled()  then return true end
+    return false
+end
+function GetRoomPower(who)
+    local location = GetLocationForPoint(who:GetOrigin())
+    if not location then return false end
+    local powernode = GetPowerPointForLocation(location.name)
+    if powernode then 
+        return powernode
+    end
     return false
 end
 function GetSiegeLocation(where)

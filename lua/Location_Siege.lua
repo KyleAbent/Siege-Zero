@@ -18,6 +18,7 @@ if Server then
                         end
                         if not GetFrontDoorOpen() then
                             powerPoint:SetConstructionComplete()
+                            powerPoint.hasBeenToggledDuringSetup = true
                         end
                     elseif entity:isa("Alien") and not entity:isa("Commander") then
                         //print("Alien Entity walked in room...")
@@ -26,6 +27,9 @@ if Server then
                             powerPoint:SetInternalPowerState(PowerPoint.kPowerState.socketed)
                             powerPoint:SetConstructionComplete()
                             powerPoint:Kill()
+                            if not GetFrontDoorOpen() then
+                                powerPoint.hasBeenToggledDuringSetup = true
+                            end
                         end
                     end
                 end

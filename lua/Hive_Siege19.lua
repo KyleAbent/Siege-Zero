@@ -1,179 +1,5 @@
-/*
-breaks cysts
 if Server then
 
-local orig = Hive.OnInitialized
-function Hive:OnInitialized()
-orig(self)
-    local origin = self:GetOrigin()
-    local nearest = GetNearest(self:GetOrigin(), "TechPoint" ) //nearest should be alien tech not marine :P
-    //  Print("Eh? 1")
-    if nearest then
-  //  Print("Eh? 2")
-        origin = origin + Vector(0,nearest.height,0)
-        self:SetOrigin(origin)
-    end
-    
-end
-end
-
-*/
-
-if Server then
-
-local kEggMinRange = 4
-local kEggMaxRange = 22
-
-function Hive:DoOriginal()
-PROFILE("Hive:GenerateEggSpawns")
-
-
-
-    local origin = self:GetModelOrigin()
-
-    for _, eggSpawn in ipairs(Server.eggSpawnPoints) do
-        if (eggSpawn - origin):GetLength() < kEggMaxRange then
-            table.insert(self.eggSpawnPoints, eggSpawn)
-        end
-    end
-
-    local minNeighbourDistance = 1.5
-    local maxEggSpawns = 20
-    local maxAttempts = maxEggSpawns * 10
-
-    ///if #self.eggSpawnPoints >= maxEggSpawns then return end
-
-    local extents = LookupTechData(kTechId.Egg, kTechDataMaxExtents, nil)
-    local capsuleHeight, capsuleRadius = GetTraceCapsuleFromExtents(extents)
-
-    -- pre-generate maxEggSpawns, trying at most maxAttempts times
-    for index = 1, maxAttempts do
-        local spawnPoint = GetRandomSpawnForCapsule(capsuleHeight, capsuleRadius, origin, kEggMinRange, kEggMaxRange, EntityFilterAll())
-
-        if spawnPoint then
-            -- Prevent an Egg from spawning on top of a Resource Point.
-            local notNearResourcePoint = #GetEntitiesWithinRange("ResourcePoint", spawnPoint, 2) == 0
-
-            if notNearResourcePoint then
-                spawnPoint = GetGroundAtPosition(spawnPoint, nil, PhysicsMask.AllButPCs, extents)
-            else
-                spawnPoint = nil
-            end
-        end
-
-        local location = spawnPoint and GetLocationForPoint(spawnPoint)
-        local locationName = location and location:GetName() or ""
-
-        local sameLocation = true //spawnPoint ~= nil //and locationName == hiveLocationName //Not true but get location name and match it. this is lazy for now. haha.
-
-        if spawnPoint ~= nil and sameLocation then
-
-            local tooCloseToNeighbor = false
-            for _, point in ipairs(self.eggSpawnPoints) do
-
-                if (point - spawnPoint):GetLengthSquared() < (minNeighbourDistance * minNeighbourDistance) then
-
-                    tooCloseToNeighbor = true
-                    break
-
-                end
-
-            end
-
-            if not tooCloseToNeighbor then
-
-                table.insert(self.eggSpawnPoints, spawnPoint)
-                //if #self.eggSpawnPoints >= maxEggSpawns then
-                    //break
-                //end
-
-            end
-
-        end
-
-    end
-
-   // if #self.eggSpawnPoints < kAlienEggsPerHive * 2 then
-     //   Print("Hive in location \"%s\" only generated %d egg spawns (needs %d). Place some egg enteties.", GetLocationForPoint(self:GetOrigin()).name, table.icount(self.eggSpawnPoints), kAlienEggsPerHive)
-   // end
-end
-
-function Hive:DoNew() 
-    local power = GetRandomConnectedCyst() //GetRandomDisabledPower()
-    if not power then
-        //print("Hive DoNew power not found???")
-        return
-    end
-    local origin = power:GetOrigin()
-    local minNeighbourDistance = 1.5
-    local maxEggSpawns = 20
-    local maxAttempts = maxEggSpawns * 10
-
-    ///if #self.eggSpawnPoints >= maxEggSpawns then return end
-
-    local extents = LookupTechData(kTechId.Egg, kTechDataMaxExtents, nil)
-    local capsuleHeight, capsuleRadius = GetTraceCapsuleFromExtents(extents)
-
-    -- pre-generate maxEggSpawns, trying at most maxAttempts times
-    for index = 1, maxAttempts do
-        local spawnPoint = GetRandomSpawnForCapsule(capsuleHeight, capsuleRadius, origin, kEggMinRange, kEggMaxRange, EntityFilterAll())
-
-        if spawnPoint then
-            -- Prevent an Egg from spawning on top of a Resource Point.
-            local notNearResourcePoint = #GetEntitiesWithinRange("ResourcePoint", spawnPoint, 2) == 0
-
-            if notNearResourcePoint then
-                spawnPoint = GetGroundAtPosition(spawnPoint, nil, PhysicsMask.AllButPCs, extents)
-            else
-                spawnPoint = nil
-            end
-        end
-
-        local location = spawnPoint and GetLocationForPoint(spawnPoint)
-        local locationName = location and location:GetName() or ""
-
-        local sameLocation = true //spawnPoint ~= nil and locationName == hiveLocationName //Not true but get location name and match it. this is lazy for now. haha.
-
-        if spawnPoint ~= nil and sameLocation then
-
-            local tooCloseToNeighbor = false
-            for _, point in ipairs(self.eggSpawnPoints) do
-
-                if (point - spawnPoint):GetLengthSquared() < (minNeighbourDistance * minNeighbourDistance) then
-
-                    tooCloseToNeighbor = true
-                    break
-
-                end
-
-            end
-
-            if not tooCloseToNeighbor then
-
-                table.insert(self.eggSpawnPoints, spawnPoint)
-                //if #self.eggSpawnPoints >= maxEggSpawns then
-                   // break
-                //end
-
-            end
-
-        end
-
-    end
-
-    //if #self.eggSpawnPoints < kAlienEggsPerHive * 2 then
-   //     Print("Power in location \"%s\" only generated %d egg spawns (needs %d). Place some egg enteties.", GetLocationForPoint(power).name, table.icount(self.eggSpawnPoints), kAlienEggsPerHive)
-   // end
-end
-function Hive:GenerateEggSpawnsModified()
-    //lets see how much it drains perf to recalculate egg spawns. With limit beyond the count/clamp. heh.ActualAlienFormula
-    //print("Hive GenerateEggSpawnsModified")
-    self.eggSpawnPoints = { }
-    self:DoOriginal()
-    self:DoNew()
-    //Better way? Onhive init, generate egg spawns for every room and only allow spawning in disabled power
-    //Or just have the old egg spawns and add new ones to it
-end
 
 
 -- overwrite get rid of scale with player count
@@ -245,7 +71,17 @@ function Hive:SpawnEgg(manually)
     for i = 1, maxAvailablePoints do
 
         //local position = self.eggSpawnPoints[j] the only change lol
-        local position = table.random(self.eggSpawnPoints)
+        local which = math.random(1,2)
+        local position = nil
+        if which == 1 then
+            position = table.random(self.eggSpawnPoints)
+        elseif which == 2 then
+            local power = GetRandomDisabledPower()
+            if power then
+                position = power:GetRandomSpawnPoint() //that is infested
+            end
+        end
+
 
         -- Need to check if this spawn is valid for an Egg and for a Skulk because
         -- the Skulk spawns from the Egg.
@@ -272,7 +108,6 @@ function Hive:SpawnEgg(manually)
                 if manually then
                     egg.manuallySpawned = true
                 end
-                //table.remove(self.eggSpawnPoints, position) //so remove it from table ugh
                 return egg
 
             end

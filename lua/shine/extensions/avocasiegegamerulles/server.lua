@@ -11,6 +11,13 @@ kgameStartTime = 0
 return true
 end
 ------------------------------------------------------------
+local function GeneratePowerPointSpawnTables()
+    for _, ent in ientitylist(Shared.GetEntitiesWithClassname("Powerpoint")) do 
+       ent:GenerateTables()
+    end
+end
+
+-------------------------------------------------
 //Messy, Whatever. Deal with it. lol.
 //Either Here or in map entity door convar for front and siege
 //Either or, not both. For now this way.
@@ -108,6 +115,18 @@ local siegeTime = 930
 
 end
 ------------------------------------------------------------
+function Plugin:PostJoinTeam( Gamerules, Player, OldTeam, NewTeam, Force, ShineForce ) --Called after a successful team join. 
+    
+    if not GetGameStarted() then
+                //Shared.ConsoleCommand("sh_setteam avo 1")
+           for i = 1, 11 do
+          Shared.ConsoleCommand("addbot") --REMOVE ME! LOCAL ONLY LOL
+         end
+       //Shared.ConsoleCommand("sh_randomrr")
+       Shared.ConsoleCommand("sh_forceroundstart")
+    end
+
+end
 function Plugin:MapPostLoad()
       Server.CreateEntity(Timer.kMapName)
       Server.CreateEntity(Conductor.kMapName)
@@ -127,9 +146,11 @@ function Plugin:MapPostLoad()
     Print("count of conductCount's is %s",ToString(conductCount))
     
       GetDoorLengthByMapName()
+      
 end
 function Plugin:OnFirstThink()
       GetDoorLengthByMapName()
+      //GeneratePowerPointSpawnTables()
 end
 
 
@@ -192,6 +213,9 @@ local function GiveTimersToAll()
                end
 end
 ------------------------------------------------------------
+
+
+
 //Add timer on join if game started
 function Plugin:ClientConfirmConnect(Client)
   if Client:GetIsVirtual() then return end
@@ -203,12 +227,12 @@ function Plugin:ClientConfirmConnect(Client)
          AddSiegeTimer(Client)
         end
     else
-        --Shared.ConsoleCommand("sh_setteam avo 2")
-           --for i = 1, 5 do
+        --Shared.ConsoleCommand("sh_setteam avo 1")
+         --  for i = 1, 11 do
           --Shared.ConsoleCommand("addbot") --REMOVE ME! LOCAL ONLY LOL
          --end
-       Shared.ConsoleCommand("sh_randomrr")
-       Shared.ConsoleCommand("sh_forceroundstart")
+       //Shared.ConsoleCommand("sh_randomrr")
+       
    end
 end
 ------------------------------------------------------------

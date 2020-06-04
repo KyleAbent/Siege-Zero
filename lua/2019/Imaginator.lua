@@ -49,108 +49,6 @@ function Imaginator:OnCreate()
    self:SetUpdates(true)
 end
 
-local function NotBeingResearched(techId, who)
-
-    //This is nasty lol, because it's looking at every structure. Ugh.
-    //Why not an array of only strings that are current researches? Once research complete, remove from table. Hm? Or..?
-
-    if techId ==  kTechId.AdvancedArmoryUpgrade or techId == kTechId.UpgradeRoboticsFactory then
-     return true
-    end
-    
-    if who:isa("Hive") then
-        --print("NotBeingResearched is a hive!!!")
-        return true
-    end
-    
-    if who:isa("Egg") then
-        --print("NotBeingResearched is a hive!!!")
-        return true
-    end
-
-    for _, structure in ientitylist(Shared.GetEntitiesWithClassname( string.format("%s", who:GetClassName()) )) do
-        if structure:GetIsResearching() and structure:GetClassName() == who:GetClassName() and structure:GetResearchingId() == techId then
-            return false
-        end
-    end
-
-    return true
-
-end
-
-local function ResearchEachTechButton(who)
-
-    //Expensive as game goes on
-
-    local techIds = who:GetTechButtons() or {}
-
-    if who:isa("EvolutionChamber") then
-        techIds = {}
-        table.insert(techIds, kTechId.Charge )
-        table.insert(techIds, kTechId.BileBomb )
-        table.insert(techIds, kTechId.MetabolizeEnergy )
-        table.insert(techIds, kTechId.Leap )
-        table.insert(techIds, kTechId.Spores )
-        table.insert(techIds, kTechId.Umbra )
-        table.insert(techIds, kTechId.MetabolizeHealth )
-        table.insert(techIds, kTechId.BoneShield )
-        table.insert(techIds, kTechId.Stab )
-        table.insert(techIds, kTechId.Stomp )
-        table.insert(techIds, kTechId.Xenocide )
-    end
-    
-    
-    if who:isa("Hive") then
-        --print("Who is a hive!!!")
-        techIds = {}
-        --table.insert(techIds, who:GetTechButtons()[5] )
-        --table.insert(techIds, who:GetTechButtons()[6] )
-        --table.insert(techIds, who:GetTechButtons()[7] )
-        table.insert(techIds, who:GetTechButtons()[2] )
-        --table.shuffle(techIds) //else the first hive is always crag etc
-    end
-    
-    if who:isa("Egg") then
-        --print("Who is a hive!!!")
-        techIds = {}
-        table.insert(techIds, who:GetTechButtons()[5] )
-        table.insert(techIds, who:GetTechButtons()[6] )
-        table.insert(techIds, who:GetTechButtons()[7] )
-        table.insert(techIds, who:GetTechButtons()[8] )
-        table.shuffle(techIds)
-    end
-
-    if who:isa("Observatory") then
-        techIds = {}
-        table.insert(techIds, kTechId.PhaseTech ) --advancedbeacon
-    end
-
-    
-   // if who:isa("Armory") then
-        ///if not has shotgun then
-    
-   // end
-
-
-
-    for _, techId in ipairs(techIds) do
-        if techId ~= kTechId.None then
-            if not GetHasTech(who, techId)  and who:GetCanResearch(techId) then
-                local tree = GetTechTree(who:GetTeamNumber())
-                local techNode = tree:GetTechNode(techId)
-                assert(techNode ~= nil)
-                if tree:GetTechAvailable(techId) then
-                    //local cost = 0--LookupTechData(techId, kTechDataCostKey) *
-                    if  NotBeingResearched(techId, who) then //and TresCheck(1,cost) then
-                        who:SetResearching(techNode, who)
-                        break -- Because having 2 armslabs research at same time voids without break. So lower timer 16 to 4
-                        --  who:GetTeam():SetTeamResources(who:GetTeam():GetTeamResources() - cost)
-                    end
-                 end
-             end
-        end
-    end
-end
 local function GetDelay()
   if not GetSetupConcluded() then 
       return 12
@@ -178,12 +76,6 @@ end
 if Server then
     function Imaginator:OnUpdate(deltatime)
 
-        if not  self.alienspawnLoc or self.alienspawnLoc + 30 <= Shared.GetTime() then
-            //print("Imaginator alienspawnLoc!!!!")
-            local con = GetConductor()
-                con:ManageEggSpawnLocs()
-            self.alienspawnLoc = Shared.GetTime()
-        end
         
         if self.marineenabled and (not  self.timeLastGuideLostBots or self.timeLastGuideLostBots + 30 <= Shared.GetTime() ) then
             if not GetSetupConcluded() then
@@ -197,48 +89,7 @@ if Server then
             self:Imaginations()
         end
 
-        if not self.timeLastResearch or self.timeLastResearch + 16 <= Shared.GetTime() then
-
-            local gamestarted = GetGamerules():GetGameState() == kGameState.Started
-            if gamestarted then
-                local researchables = {}
-
-                if self.alienenabled then
-                    for _, ent in ientitylist(Shared.GetEntitiesWithClassname("EvolutionChamber")) do
-                        table.insert(researchables, ent)
-                    end
-                    for _, ent in ientitylist(Shared.GetEntitiesWithClassname("Hive")) do
-                        table.insert(researchables, ent)
-                    end
-                    for _, ent in ientitylist(Shared.GetEntitiesWithClassname("Egg")) do
-                        table.insert(researchables, ent)
-                    end
-                end
-
-                if self.marineenabled then
-                    for _, researchable in ipairs(GetEntitiesWithMixinForTeam("Research", 1)) do
-                        //Not that great, but try process of elimination?
-                        if researchable:isa("EvolutionChamber") and researchable:GetTeamNumber() == 1 then
-                            print("Found EvolutionChamber for Marine Team??????")
-                        end
-                        if not researchable:GetIsResearching()  then // and is Active ....
-                            table.insert(researchables, researchable)
-                        end
-                    end
-                end
-
-                //Maybe a seperate delay by 1s rather than all at the same time.
-                //Rather than every entity with research mixin, why not grab from a list of entities, grab one that's not researching, then research
-                if self.alienenabled or self.marineenabled then
-                    for i = 1, #researchables do
-                        local researchable = researchables[i]
-                        ResearchEachTechButton(researchable)
-                    end
-                end
-
-                self.timeLastResearch = Shared.GetTime()
-            end
-        end
+   
 
     end
 
@@ -266,15 +117,22 @@ end
 local function DropWeaponsJetpacksExos(who, self)
 
 
+
         //This is bad not to have a cap for spawning haha. Gotta add a limit somewhere. By count in global map as well.ActualAlienFormula
         
-    if not who:GetIsBuilt() then
+    if not who:GetIsBuilt() or not who:GetIsPowered() then
         return
     end
     
     //if has adv armory, if has jp, if has exo.
     local randomize = {}
     
+    local exosInRange = GetEntitiesForTeamWithinRange("Exosuit", 1, who:GetOrigin(), 99999999)
+    if #exosInRange < 6 then
+        table.insert(randomize, kTechId.DropExosuit)
+    end
+    
+    /*
     local SGSInRange = GetEntitiesForTeamWithinRange("Shotgun", 1, who:GetOrigin(), 99999999)
     
     if #SGSInRange < 6 then
@@ -292,14 +150,12 @@ local function DropWeaponsJetpacksExos(who, self)
     if #GLSInRange < 6 then
         table.insert(randomize, kTechId.GrenadeLauncher)
     end
-    local exosInRange = GetEntitiesForTeamWithinRange("Exosuit", 1, who:GetOrigin(), 99999999)
-    if #exosInRange < 6 then
-        table.insert(randomize, kTechId.DropExosuit)
-    end
+
     local flsInRange = GetEntitiesForTeamWithinRange("Flamethrower", 1, who:GetOrigin(), 99999999)
     if #exosInRange < 6  then
         table.insert(randomize, kTechId.Flamethrower)
     end
+    */
     
     
 
@@ -403,11 +259,15 @@ end
 
 local function HaveCCsCheckIps(self)
     local CommandStations = GetEntitiesForTeam( "CommandStation", 1 )
-    if not CommandStations then
+    if #CommandStations == 0 then
      return
     end
     OrganizedIPCheck(table.random(CommandStations), self)
-    DropWeaponsJetpacksExos(table.random(CommandStations), self)//For now by the commandstation heh
+    local Protos = GetEntitiesForTeam( "PrototypeLab", 1 )
+    if #Protos == 0 then
+     return
+    end
+    DropWeaponsJetpacksExos(table.random(Protos), self) // Tune this
 end
 
 function Imaginator:ManageMarineBeacons() // Get all Macs, make each mac weld CC?
@@ -437,7 +297,7 @@ local function ManageRoboticFactories() //If bad perf can be modified to do one 
     local ARCRobo = {} --ugh
     local  macs = GetEntitiesForTeam( "MAC", 1 )
     local isSiege = GetSiegeDoorOpen()
-    --Because researcher will spawn macs.
+
     for index, robo in ipairs(GetEntitiesForTeam("RoboticsFactory", 1)) do
         if robo:GetIsBuilt() and not robo.open and not robo:GetIsResearching() and robo:GetIsPowered() then
             //Prioritize Macs if not siege room open
@@ -566,6 +426,8 @@ function Imaginator:ActualFormulaMarine()
         HaveCCsCheckIps(self)
         HaveBatteriesCheckSentrys(self)
         ManageRoboticFactories()
+        //HaveProtosSpawnJpsExos
+        //HaveArmorysSpawnWeapons
     end
     //Can do a check for PG or Battery here, if techid is .. then get all locations without...
 
@@ -587,7 +449,7 @@ function Imaginator:ActualFormulaMarine()
     local success = false
     local entity = nil
     if powerpoint and tospawn then
-        local potential = FindPosition(GetAllLocationsWithSameName(powerpoint:GetOrigin()), powerpoint, 1)
+        local potential = powerpoint:GetRandomSpawnPoint() //hmm?
         if potential == nil then local roll = math.random(1,3)
             if roll == 3 then
                 self:ActualFormulaMarine() return
@@ -595,7 +457,7 @@ function Imaginator:ActualFormulaMarine()
                 return
             end
         end
-        randomspawn = FindFreeSpace(potential, 2.5)
+        randomspawn = potential//FindFreeSpace(potential, 2.5)
             if randomspawn then
                 local nearestof = GetNearestMixin(randomspawn, "Construct", 1, 
                 function(ent) return ent:GetTechId() == tospawn
@@ -912,17 +774,20 @@ function Imaginator:ActualAlienFormula()
 
     local randomspawn = nil
     local tospawn = GetAlienSpawnList(self) --, cost, gamestarted = GetAlienSpawnList(self)
-    local spawnPointEnt  = getAlienConsBuildOrig(tospawn) 
+    //local spawnPointEnt  = getAlienConsBuildOrig(tospawn) 
     local success = false
     local entity = nil
 
-    if spawnNearEnt then
-        Print("ActualAlienFormula, spawnNearEnt %s, tospawn %s",  spawnPointEnt:GetMapName() or nil, LookupTechData(tospawn, kTechDataMapName)  )
-    end
+    //if spawnNearEnt then
+     //   Print("ActualAlienFormula, spawnNearEnt %s, tospawn %s",  spawnPointEnt:GetMapName() or nil, LookupTechData(tospawn, kTechDataMapName)  )
+   // end
 
-    if spawnPointEnt and tospawn then     
-        local potential = FindPosition(GetAllLocationsWithSameName(spawnPointEnt:GetOrigin()), spawnPointEnt, 2)
-        if potential == nil then
+//if spawnPointEnt and tospawn then 
+        if tospawn then    
+        //print("ActualAlienFormula tospawn")
+        local power = GetRandomDisabledPower()
+        if power == nil then //hm?
+            //print("ActualAlienFormula power is nil")
             local roll = math.random(1,3)
         if roll == 3 then
             self:ActualAlienFormula() return
@@ -930,8 +795,8 @@ function Imaginator:ActualAlienFormula()
             return
         end
     end     
-         
-    randomspawn = FindFreeSpace(potential, math.random(2.5, 4) , math.random(8, 16), not tospawn == kTechId.Cyst )
+    print("ActualAlienFormula randomspawn")
+    randomspawn = power:GetRandomSpawnPoint()  //FindFreeSpace(potential, math.random(2.5, 4) , math.random(8, 16), not tospawn == kTechId.Cyst )
     if randomspawn then
         local nearestof = GetNearestMixin(randomspawn, "Construct", 2, function(ent) return ent:GetTechId() == tospawn end)
             if nearestof then

@@ -15,3 +15,5 @@ Script.Load("lua/2019/EEM/PushTrigger.lua")
 Script.Load("lua/2019/EEM/ScaledModelMixin.lua")
 
 Script.Load("lua/2019/DamageInfestedUnPowered.lua")
+
+Script.Load("lua/2019/ResearchMixinChanges.lua")

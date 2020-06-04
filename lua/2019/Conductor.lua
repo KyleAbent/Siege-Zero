@@ -37,12 +37,6 @@ function Conductor:SetMostRecentCyst(cystid)
     self.mostRecentCyst = cystid//Do I have to hook CystPreOnKill, call cond, get most recent cyst id.. if match then set back to invalid? Hm. Not Sure. Ah.
 end
 */    
-function Conductor:ManageEggSpawnLocs()
-    //print("Conductor ManageEggSpawnLocs")
-    local hive = GetRandomHive()
-    if not hive then return end
-    hive:GenerateEggSpawnsModified()
-end
 function Conductor:SetMostRecentCystOrigin(vector)
     self.mostRecentCystOrig = vector//So I don't have to worry about entity id with cyst and all that hehe
 end
@@ -367,27 +361,24 @@ function Conductor:ManageShades()
     /////////////During Setup/////////////////////////////////////////
 
     if not GetSiegeDoorOpen() then 
-    
+
         local count = 0
         local max = math.random(1,4)
-        
+
         for i = 1, #shades do
             local shade = shades[i]
-                                                            
-            local nonCloaked = GetNearestMixin(shade:GetOrigin(), "Cloakable", 2, function(ent) return not ent:GetIsCloaked() and ent ~= self end)
-            //print("ManageShades Shade Loop")
-            if nonCloaked then
-                //return nonCloaked
-                 //print("ManageShades Shade Loop Move Order")
-                shade:GiveOrder(kTechId.Move, nil, FindFreeSpace(nonCloaked:GetOrigin(), 4), nil, false, false) 
-                //shade:SetOrigin(nonCloaked:GetOrigin())
-                count = count + 1
-                if count == max then
-                    return
+            if shade:GetCanTeleport() then                                                
+                local nonCloaked = GetNearestMixin(shade:GetOrigin(), "Cloakable", 2, function(ent) return not ent:GetIsCloaked() and ent ~= self end)
+                if nonCloaked then
+                    shade:TriggerTeleport(5, shade:GetId(), FindFreeSpace(nonCloaked:GetOrigin(), 4), 0)
+                    count = count + 1
+                    if count == max then
+                        return
+                    end
                 end
             end
         end
-        
+
     end
     
     ////////////During Front Open//////////////////////////////////////
@@ -443,19 +434,11 @@ local function findDestinationForAlienConst(self,who)
         end
     end
 
-    //Shift/Crag : Any Power/In Combat Player/Structure
-    local random = math.random(1,2)
-    if random == 1 then
-        local power = GetNearest(who:GetOrigin(), "PowerPoint", 1,  function(ent) return GetLocationForPoint(who:GetOrigin()) ~= GetLocationForPoint(ent:GetOrigin()) end ) 
-        if power then
-            return power
-        end
-    else
+   
         local inCombat = GetNearestMixin(who:GetOrigin(), "Combat", 2, function(ent) return ent:GetIsInCombat() end)
         if inCombat then
             return inCombat
         end
-    end
     
 end
 
@@ -470,30 +453,16 @@ table.shuffle(crags)
     for i = 1, #crags do 
         local crag = crags[i]
         crag:InstructSpecificRules()
-        if not crag.moving then
-            local isSetup = not GetFrontDoorOpen() 
-            if isSetup then 
-               if not GetIsInFrontDoorRoom(crag) then
-                //print("ManageCrags isSetup and not GetIsInFrontDoorRoom[A]")
-                    local door = findFrontDestination(self,crag)
-                    if door then
-                            crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(door:GetOrigin(), 4), nil, false, false) 
-                            //print("ManageCrags isSetup and not GetIsInFrontDoorRoom GiveOrder Move Door [BBBBBBBBBBBBBBBBB]")
-                        return 
-                    end 
-                    return//Don't look for anything else
-                end
-            end
-        
+       if crag:GetCanTeleport() then    
             local destination = findDestinationForAlienConst(self, crag)
-            if destination then
-                crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(destination:GetOrigin(), 4), nil, false, false) 
+            if destination then 
+                crag:TriggerTeleport(5, crag:GetId(), FindFreeSpace(destination:GetOrigin(), 4), 0)
                 count = count + 1
                 if not isSetup and count == max then
-                    return
+                return
                 end
             end
-         end
+        end
     end 
     
 end
@@ -508,29 +477,17 @@ table.shuffle(crags)
     for i = 1, #crags do 
         local crag = crags[i]
         //crag:InstructSpecificRules()
-        if not crag.moving then
-            local isSetup = not GetFrontDoorOpen() 
-            if isSetup then 
-                if not GetIsInFrontDoorRoom(crag) then
-                    local door = findFrontDestination(self,crag)
-                    if door then
-                            crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(door:GetOrigin(), 4), nil, false, false) 
-                        return 
-                    end 
-                    return//Don't look for anything else
-                end
-            end
-        
+        if crag:GetCanTeleport() then
             local destination = findDestinationForAlienConst(self, crag)
             if destination then
-                crag:GiveOrder(kTechId.Move, nil, FindFreeSpace(destination:GetOrigin(), 4), nil, false, false) 
+                crag:TriggerTeleport(5, crag:GetId(), FindFreeSpace(destination:GetOrigin(), 4), 0)
                 count = count + 1
                 if not isSetup and count == max then
                     return
                 end
             end
-         end
-    end 
+        end
+     end
 end
 
 function Conductor:ManageCysts()
@@ -596,7 +553,7 @@ function Conductor:ManageWhips()
 end
 local function GiveDrifterOrder(who, where)
 
-    local structure =  GetNearestMixin(who:GetOrigin(), "Construct", 2, function(ent) return not ent:GetIsBuilt() and (not ent.GetCanAutoBuild or ent:GetCanAutoBuild())   end)
+    local structure =  GetNearestMixin(who:GetOrigin(), "Construct", 2, function(ent) return not ent:GetIsBuilt() and (not ent.GetCanAutoBuild or ent:GetCanAutoBuild()) and not ent:isa("Cyst")  end)
     local player =  GetNearest(who:GetOrigin(), "Alien", 2, function(ent) return ent:GetIsInCombat() and ent:GetIsAlive() end) 
 
     local target = nil
