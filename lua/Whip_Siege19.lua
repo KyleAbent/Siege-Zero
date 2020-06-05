@@ -1,7 +1,7 @@
 local oninit = Whip.OnInitialized
 function Whip:OnInitialized()
     oninit(self)
-     GetImaginator().activeWhips = GetImaginator().activeWhips + 1;  
+     GetImaginator().activeWhips = GetImaginator().activeWhips + 1  
 end
 
  function Whip:GetCanFireAtTargetActual(target, targetPoint)    
@@ -39,5 +39,5 @@ end
 
  function Whip:PreOnKill(attacker, doer, point, direction)
       
-	    GetImaginator().activeWhips  = GetImaginator().activeWhips- 1
+	    GetImaginator().activeWhips  = GetImaginator().activeWhips - 1
 end

@@ -554,6 +554,7 @@ function Conductor:ManageWhips()
             if frontdoor then  
                centralPower = GetRoomPowerTryEnsureSetupAlienOwned(frontdoor)//here is where it can mess up and get the marine occupied room.
            end
+           return
        end
        
        if centralPower then
