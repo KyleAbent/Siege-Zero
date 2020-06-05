@@ -351,9 +351,9 @@ function FindFreeSpace(where, mindistance, maxdistance, infestreq)
                 spawnPoint = spawnPoint[1]
            end
         
-          // if spawnPoint ~= nil then
-           //  spawnPoint = GetGroundAtPosition(spawnPoint, nil, PhysicsMask.AllButPCs, extents)
-           //end
+           if spawnPoint ~= nil then
+             spawnPoint = GetGroundAtPosition(spawnPoint, nil, PhysicsMask.AllButPCs, extents)
+           end
         
            local location = spawnPoint and GetLocationForPoint(spawnPoint)
            local locationName = location and location:GetName() or ""
@@ -567,6 +567,15 @@ function GetRoomPower(who)
     if not location then return false end
     local powernode = GetPowerPointForLocation(location.name)
     if powernode then 
+        return powernode
+    end
+    return false
+end
+function GetRoomPowerTryEnsureSetupAlienOwned(who)
+    local location = GetLocationForPoint(who:GetOrigin())
+    if not location then return false end
+    local powernode = GetPowerPointForLocation(location.name) //probably GetNearestPowerPoint .. 
+    if powernode and powernode:GetIsDisabled() and powernode:GetHasBeenToggledDuringSetup() then ////HHMMMMM?? 
         return powernode
     end
     return false

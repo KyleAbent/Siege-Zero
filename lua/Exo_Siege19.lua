@@ -1,3 +1,22 @@
+Script.Load("lua/StunMixin.lua")
+Script.Load("lua/2019/StunWall.lua")
+
+
+
+
+local networkVars = {   
+
+
+ }
+ 
+AddMixinNetworkVars(StunMixin, networkVars)
+ 
+local oninit = Exo.OnInitialized
+function Exo:OnInitialized()
+    oninit(self)
+    InitMixin(self, StunMixin)
+end
+
 local kSmashEggRange = 1.5
 local function SmashNearbyCysts(self)
     assert(Server)
@@ -17,4 +36,16 @@ function Exo:OnCreate()
     end
 end
 
+function Exo:GetIsStunAllowed()
+    return not self.timeLastStun or self.timeLastStun + 8 < Shared.GetTime() 
+end
 
+function Exo:OnStun()
+         if Server then
+                local stunwall = CreateEntity(StunWall.kMapName, self:GetOrigin(), 2)    
+                StartSoundEffectForPlayer(AlienCommander.kBoneWallSpawnSound, self)
+        end
+end
+
+
+Shared.LinkClassToMap("Exo", Exo.kMapName, networkVars)

@@ -1,3 +1,8 @@
+local oninit = Whip.OnInitialized
+function Whip:OnInitialized()
+    oninit(self)
+     GetImaginator().activeWhips = GetImaginator().activeWhips + 1;  
+end
 
  function Whip:GetCanFireAtTargetActual(target, targetPoint)    
 
@@ -29,4 +34,10 @@ if Server then
         end
     end
     
+end
+
+
+ function Whip:PreOnKill(attacker, doer, point, direction)
+      
+	    GetImaginator().activeWhips  = GetImaginator().activeWhips- 1
 end

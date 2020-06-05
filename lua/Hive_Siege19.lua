@@ -63,26 +63,49 @@ function Hive:SpawnEgg(manually)
 
         --Print("Can't spawn egg. No spawn points!")
         return nil
-
+        //WEll this can be modified but ill come back here
     end
 
-
+    local isSetup = not GetSetupConcluded()
     local maxAvailablePoints = #self.eggSpawnPoints
     for i = 1, maxAvailablePoints do
 
-        //local position = self.eggSpawnPoints[j] the only change lol
-        local which = math.random(1,2)
-        local position = nil
-        if which == 1 then
-            position = table.random(self.eggSpawnPoints)
-        elseif which == 2 then
-            local power = GetRandomDisabledPower()
-            if power then
-                position = power:GetRandomSpawnPoint() //that is infested
+        
+        //Lets try fucking shit up even more. Lets find more bugs. Lets force setup eggs to be in front door room.
+        //This does fuck shit up in that 0 eggs and requirement is to walk to front door room to spawn them eggs. So no. 
+        //We can say if we find the power sure .. ele spawn in hive .. which is ok.. because 1 hive == 5 egg, 3 hive == 15 egg,
+         //by the time hive 2 and 3 build, chances are front door room is marked.
+         //Well .. would it be easier to just move the eggs ... lol...
+         local position = nil
+        if isSetup then
+            local frontdoor = nil
+            frontdoor = GetNearest(self:GetOrigin(), "FrontDoor", 0) 
+            if frontdoor then  
+                //local power = GetNearest(frontdoor:GetOrigin(), "PowerPoint", 1, function(ent) return ent:GetIsDisabled() and ent:GetHasBeenToggledDuringSetup() and GetLocationForPoint( frontdoor:GetOrigin() ) == GetLocationForPoint( ent:GetOrigin() ) end)  //here is where it can mess up and get the marine occupied room.
+                local power = GetRoomPowerTryEnsureSetupAlienOwned(frontdoor)//here is where it can mess up and get the marine occupied room.
+                if power then
+                    position = power:GetRandomSpawnPoint()
+                else
+                    position = table.random(self.eggSpawnPoints)
+                end
+            end
+        else
+            //local position = self.eggSpawnPoints[j] the only change lol
+            local which = math.random(1,2)
+            if which == 1 then
+                position = table.random(self.eggSpawnPoints)
+            elseif which == 2 then
+                local power = GetRandomDisabledPower()
+                if power then
+                    position = power:GetRandomSpawnPoint() //that is infested
+                end
             end
         end
-
-
+        if not position then
+            for i = 1, 64 do 
+                print("no egg positions you stupid idiot return nill else error")
+             end
+        end
         -- Need to check if this spawn is valid for an Egg and for a Skulk because
         -- the Skulk spawns from the Egg.
         local validForEgg = position and GetCanEggFit(position)

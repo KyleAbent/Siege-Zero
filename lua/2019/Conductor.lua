@@ -272,6 +272,26 @@ function Conductor:OnRoundStart()
             end
 end
 
+/*
+Alternative to spawning eggs, move em... by front/whatever
+function Conductor:ManageEggsSetup()
+   local isSetup = not GetFrontDoorOpen()
+   if not isSetup then
+    return
+   end
+   
+   //Yeah.. For loop! .. but its ok.. its ... setup... 5-15 iterations. /shrug
+   
+   for index, egg in ipairs(GetEntitiesForTeam("Egg", 2)) do
+        if not GetIsInFrontDoorRoom(egg) and shade:GetCanTeleport() then //shade lol
+        
+        end
+    end
+   
+   
+end
+*/
+
 function Conductor:ManageScans()
     if not GetSiegeDoorOpen() then
      return // Scan the avg origin of arc or something meh
@@ -363,7 +383,7 @@ function Conductor:ManageShades()
     if not GetSiegeDoorOpen() then 
 
         local count = 0
-        local max = math.random(1,4)
+        local max = math.random(1,4) //This is good and all but it sends 4 shades to the same spot sometimes lol ugh
 
         for i = 1, #shades do
             local shade = shades[i]
@@ -374,7 +394,7 @@ function Conductor:ManageShades()
                     count = count + 1
                     if count == max then
                         return
-                    end
+                    end//needs a delay between next iteration ugh
                 end
             end
         end
@@ -522,32 +542,29 @@ end
 
 function Conductor:ManageWhips()
        
-       --gonna affect contam whip etc
-       local random = math.random(1,4)
+       //Make them all attack one?
+       
+       //local random = math.random(1,4)
        local isSetup = not GetFrontDoorOpen() 
        --leave min around hive not all leave. hm.
-
-       for i = 1, random do --maybe time delay ah
-           local hive = GetRandomHive()--if hive then or return chair if no hive lol
-           local nearestof = GetNearest(hive:GetOrigin(), "Whip", 2, function(ent) return ent:GetIsBuilt() and ( ent.GetIsInCombat and not ent:GetIsInCombat() and not ent.moving )  end)
-            if nearestof then
-                    if isSetup then
-                            local door = findFrontDestination(self,nearestof)
-                            if door then
-                                nearestof:GiveOrder(kTechId.Move, door:GetId(), FindFreeSpace(door:GetOrigin(), 4), nil, false, false) 
-                                SetDirectorLockedOnEntity(nearestof) 
-                            return
-                        end
-                    end
-            
-               -- if not moving
-               local power = GetNearest(nearestof:GetOrigin(), "PowerPoint", 1,  function(ent) return ent:GetIsBuilt() and not ent:GetIsDisabled()  end ) 
-               if not isSetup and power then
-                 nearestof:GiveOrder(kTechId.Move, power:GetId(), FindFreeSpace(power:GetOrigin(), 4), nil, false, false) 
-                 SetDirectorLockedOnEntity(nearestof)
-                 -- CreatePheromone(kTechId.ThreatMarker,power:GetOrigin(), 2)  if get is time up then
-               end
-            end 
+       local centralPower = GetRandomActivePower()
+       local frontdoor = nil
+       if isSetup then
+            frontdoor = GetNearest(self:GetOrigin(), "FrontDoor", 0) //self origin lol well ok it works
+            if frontdoor then  
+               centralPower = GetRoomPowerTryEnsureSetupAlienOwned(frontdoor)//here is where it can mess up and get the marine occupied room.
+           end
+       end
+       
+       if centralPower then
+            local origin = FindFreeSpace(centralPower:GetOrigin(), 4) //dont loop this calculation
+            for index, whip in ientitylist(Shared.GetEntitiesWithClassname("Whip")) do
+              if not whip:GetIsInCombat() and not whip.moving  then
+                     whip:GiveOrder(kTechId.Move, centralPower:GetId(), origin, nil, false, false) 
+                     SetDirectorLockedOnEntity(nearestof)
+                     -- CreatePheromone(kTechId.ThreatMarker,power:GetOrigin(), 2)  if get is time up then
+               end 
+           end
        end   
 
 end

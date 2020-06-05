@@ -37,15 +37,12 @@ local origInfes = InfestationTrackerMixin.UpdateInfestedState
         
         self:SetCorroded()
 
-        -- No point in dealing armor only damage to a unit without armor left
-        -- Stops spamming marine commanders with "Your base is under attack" alerts
-        if self:GetArmor() > 0 then
             if self:isa("PowerPoint") then
                 self:DoDamageLighting()
             end
 
-            self:DeductHealth(kInfestationCorrodeDamagePerSecond, nil, nil, false, self.GetIsPowered and self:GetIsPowered(), true) //If power off then damage health
-        end
+            self:DeductHealth(kInfestationCorrodeDamagePerSecond * 2, nil, nil, false, self.GetIsPowered and self:GetIsPowered(), true) //If power off then damage health
+  
         
     end
 

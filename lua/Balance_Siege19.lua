@@ -1,3 +1,5 @@
+kAutoCommMaxWhips = 20
+
 kFrontTime = 300
 kSiegeTime = 930
 kJetpackUseFuelRate = .15

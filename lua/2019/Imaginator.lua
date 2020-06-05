@@ -380,6 +380,7 @@ function Imaginator:DoConductors(marine, alien)
         con:ManageShifts()
         con:ManageWhips()
         con:ManageCysts()
+        //con:ManageEggsSetup()
     end
 end
 
@@ -410,7 +411,7 @@ function Imaginator:ActualFormulaMarine()
         end
     end
     
-    if tospawn then
+    if tospawn and powerpoint then
         local potential = powerpoint:GetRandomSpawnPoint() //hmm?
         if potential == nil then local roll = math.random(1,3)
             if roll == 3 then
@@ -427,6 +428,10 @@ function Imaginator:ActualFormulaMarine()
             end
 
             entity = CreateEntityForTeam(tospawn, randomspawn, 1)
+            //if entity:isa("RoboticsFactory") then
+             //   local randomAngle = Randomizer() * math.pi * 2
+            //    entity:SetAngles(randomAngle)
+           // end
             SetDirectorLockedOnEntity(entity)
             if not GetSetupConcluded() then 
                 entity:SetConstructionComplete() 
@@ -520,7 +525,7 @@ local function GetAlienSpawnList(self)
         table.insert(tospawn, kTechId.Shift)
     end
 
-    if self.activeWhips < 13 then
+    if self.activeWhips < kAutoCommMaxWhips then
         table.insert(tospawn, kTechId.Whip)
     end
 
@@ -709,39 +714,61 @@ function Imaginator:hiveSpawn()
  end
 end
 
-function Imaginator:ActualAlienFormula()
-    self:hiveSpawn()
-
-
-    local randomspawn = nil
-    local tospawn = GetAlienSpawnList(self) 
-    local success = false
-    local entity = nil
-
-    if tospawn then    
-        //print("ActualAlienFormula tospawn")
+local function ActualAlienFormulaFailSafeOne() //recursion
         local power = GetRandomDisabledPower()
         if power == nil then //hm?
-            //print("ActualAlienFormula power is nil")
-            local roll = math.random(1,3)
-            if roll == 3 then
-                self:ActualAlienFormula() return
-            else
-                return
-            end
+                return nil
+        else
+                return power
         end     
-        print("ActualAlienFormula randomspawn")
-        randomspawn = power:GetRandomSpawnPoint()  //FindFreeSpace(potential, math.random(2.5, 4) , math.random(8, 16), not tospawn == kTechId.Cyst )
-            if randomspawn then 
+end
+local function checkWhip(self,tospawn,randomspawn)
+    //Lets emulate the alien comm "saving up" for a whip army on an interval chance or something lol.
+    local chance = math.random(1,100)
+    if chance <= 30 then //too high?
+        for i = 1, kAutoCommMaxWhips - self.activeWhips do //clamp not necessary if we know our current is below limit haha
+                                        //FindFreeSpace(randomspawn) ???
+            entity = CreateEntityForTeam(tospawn, randomspawn, 2) //MWHAHAHAHAHAHAH //boolean whipArmy == true , move all at once? LMAO //
+        end
+        return true
+    end
+    return false
+end
+local function doSpawn(self,tospawn,randomspawn)
                 if tospawn == kTechId.Tunnel and GetHasTunnelInRoom(randomspawn) then
                     return
                 end
+                
+                if tospawn == kTechId.Whip then
+                    local shouldStop = checkWhip(self,tospawn,randomspawn)
+                    if shouldStop then 
+                        return
+                    end
+                end
+                
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2)
                 SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 
                 end
                  local csyt = CreateEntity(Cyst.kMapName, FindFreeSpace(entity:GetOrigin(), 1, kCystRedeployRange),2)
+end
+function Imaginator:ActualAlienFormula()
+    self:hiveSpawn()
+    local randomspawn = nil
+    local tospawn = GetAlienSpawnList(self) 
+    local success = false
+    local entity = nil
+
+    if tospawn then  
+    local power = ActualAlienFormulaFailSafeOne()
+        if not power then
+            return //recursion
+         end
+        //print("ActualAlienFormula randomspawn")
+        randomspawn = power:GetRandomSpawnPoint()  //FindFreeSpace(potential, math.random(2.5, 4) , math.random(8, 16), not tospawn == kTechId.Cyst )
+            if randomspawn then 
+                doSpawn(self,tospawn,randomspawn)
             end
             success = true
     end

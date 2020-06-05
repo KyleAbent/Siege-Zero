@@ -112,8 +112,8 @@ end
         CreatePheromone(kTechId.ThreatMarker,contam:GetOrigin(), 2)
         //if not bot :getisincombat then setorigin
         SetDirectorLockedOnEntity(contam)
-        local egg = CreateEntity(Egg.kMapName, FindFreeSpace(origin, 1, 8), 2)
-        egg:SetHive(GetRandomHive())
+        //local egg = CreateEntity(Egg.kMapName, FindFreeSpace(origin, 1, 8), 2)
+        //egg:SetHive(GetRandomHive())
 
         local imaginator = GetImaginator()
         On_Contam_chanceWhip(origin,imaginator)

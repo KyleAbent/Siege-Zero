@@ -1,5 +1,6 @@
 //Kyle 'Avoca' Abent
 
+//These should reference Functions19.lua rather than powerpoint but w/e
 
 if Server then 
     local origInit = PowerPoint.OnInitialized
@@ -137,11 +138,11 @@ if Server then
             table.insert(tospawn, kTechId.PhaseGate)
         end --phaseavoca init
         -------------------------------------------------------------------------------------------
-        if self.activeArmorys < 4 then
+        if self.activeArmorys < 10 then //4 // Seriously I want to see how many armorys is too much lmfao
             table.insert(tospawn, kTechId.Armory)
         end
         ---------------------------------------------------------------------------------------------
-        if self.activeRobos < 2 then
+        if self.activeRobos < 1 then
             table.insert(tospawn, kTechId.RoboticsFactory)
         end
         ------------------------------------------------------------------------------------------------
