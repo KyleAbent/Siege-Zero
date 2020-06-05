@@ -11,13 +11,6 @@ local networkVars =
   marineenabled = "private boolean",
   lastMarineBeacon =  "private time",
   lasthealwave = "private time",
-  activeArmorys = "integer",
-  activeRobos = "integer",
-  activeBatteries = "integer",
-  activeIPS = "integer",
-  activeObs = "integer",
-  activePGs = "integer",
-  activeProtos = "integer",
   activeArms = "integer",
   activeWhips = "integer",
   activeCrags = "integer",
@@ -51,7 +44,7 @@ end
 
 local function GetDelay()
   if not GetSetupConcluded() then 
-      return 12
+      return 8
    end
   //if not GetSiegeDoorOpen() then 
       return 16
@@ -89,7 +82,10 @@ if Server then
             self:Imaginations()
         end
 
-   
+        if not  self.timeLastConductions or self.timeLastConductions + 16 <= Shared.GetTime() then
+            self.timeLastConductions = Shared.GetTime()
+            self:Imaginations(true)
+        end
 
     end
 
@@ -337,12 +333,9 @@ local function ManageRoboticFactories() //If bad perf can be modified to do one 
 end
 
 local function GetMarineSpawnList(self)
-    //This function requires each entity to hook: OnConstructionComplete to GetImaginator and +1 the count
-    //Also requires to use and hook OnKill to GetImaginator and -1 the count
     local tospawn = {}
     local canafford = {}
     local gamestarted = false
-    --Horrible for performance, right? Not precaching ++ local variables ++ table && for loops !!!
 
     local  CCs = 0
         for index, cc in ipairs(GetEntitiesForTeam("CommandStation", 1)) do
@@ -353,50 +346,15 @@ local function GetMarineSpawnList(self)
         return kTechId.CommandStation
     end
 
-    -----------------------------------------------------------------------------------------------
-    if self.activePGs <= 3 then
-        table.insert(tospawn, kTechId.PhaseGate)
-    end --phaseavoca init
-    -------------------------------------------------------------------------------------------
-    if self.activeArmorys <= 7 then
-        table.insert(tospawn, kTechId.Armory)
-    end
-    ---------------------------------------------------------------------------------------------
-    if self.activeRobos <= 3 then
-        table.insert(tospawn, kTechId.RoboticsFactory)
-    end
-    ------------------------------------------------------------------------------------------------
-    if self.activeObs <= 08 then
-        table.insert(tospawn, kTechId.Observatory)
-    end
-    -----------------------------------------------------------------------------------------------
-    if GetHasAdvancedArmory()  then
-        if self.activeProtos < 6 then
-            table.insert(tospawn, kTechId.PrototypeLab)
-        end
-    end
-    -------------------------------------------------------------------------------------------------
-
-    if self.activeBatteries <= 9 then //or count of locations with built power up lol
-      table.insert(tospawn, kTechId.SentryBattery)
-    end
-    ----------------------------------------------------------------------------------------------------
     local  CommandStation = #GetEntitiesForTeam( "CommandStation", 1 )
     if CommandStation < 3 then
         table.insert(tospawn, kTechId.CommandStation)
     end
-
     ----------------------------------------------------------------------------------------------------
-    --Lets make arms lab do the same and spawn anywhere with power independent from cc
-    -- local  Labs = #GetActiveConstructsForTeam( "ArmsLab", 1 )
-    --the 3 on the map could be inactive.
-    -- if Labs < 3 then --more? compare to alien 3 of each
-    --   Print("Imaginator activeArms count == %s", self.activeArms)
-    if self.activeArms < 3 then
-        table.insert(tospawn, kTechId.ArmsLab)
+
+    if #tospawn == 0 then
+        return nil
     end
-    ----------------------------------------------------------------------------------------------------
-
     local finalchoice  = table.random(tospawn)
 
     ---------------------------------------------------------------------------------------------------------
@@ -409,13 +367,24 @@ local function GetRange(who, where)
     return ArcFormula
 end
 
-function Imaginator:ActualFormulaMarine()
+function Imaginator:DoConductors(marine, alien)
     local con = GetConductor()
-    con:ManageMacs()
-    con:ManageArcs()
-    con:ManageScans()
-    local randomspawn = nil
-    local tospawn = GetMarineSpawnList(self) --cost, blah.
+    if marine then
+        con:ManageMacs()
+        con:ManageArcs()
+        con:ManageScans()
+    elseif alien then
+        con:ManageDrifters() 
+        con:ManageShades()
+        con:ManageCrags() 
+        con:ManageShifts()
+        con:ManageWhips()
+        con:ManageCysts()
+    end
+end
+
+function Imaginator:ActualFormulaMarine()
+
 
     if  GetIsTimeUp(self.lastMarineBeacon, 30) then
         self:ManageMarineBeacons()
@@ -426,29 +395,22 @@ function Imaginator:ActualFormulaMarine()
         HaveCCsCheckIps(self)
         HaveBatteriesCheckSentrys(self)
         ManageRoboticFactories()
-        //HaveProtosSpawnJpsExos
-        //HaveArmorysSpawnWeapons
     end
-    //Can do a check for PG or Battery here, if techid is .. then get all locations without...
 
-    /*
-      Getting rooms without PG and Battery, one day ... lol
-      local powerpoint = nil
-      //Can do a check for PG or Battery here, if techid is .. then get all locations without...
-      if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) then
-        powerpoint = GetRandomActivePowerWithoutPGInRoom()
-      elseif tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn) then
-        powerpoint = GetRandomActivePowerWithoutBatteryInRoom()
-      else
-        powerpoint = GetRandomActivePower()
-      end
-    */
-    
-    
+
+    local randomspawn = nil
+    local tospawn = GetMarineSpawnList(self) --cost, blah.
     local powerpoint = GetRandomActivePower()
     local success = false
     local entity = nil
-    if powerpoint and tospawn then
+
+    if powerpoint then
+        if tospawn == nil then
+            tospawn = powerpoint:GetRandomSpawnEntity()
+        end
+    end
+    
+    if tospawn then
         local potential = powerpoint:GetRandomSpawnPoint() //hmm?
         if potential == nil then local roll = math.random(1,3)
             if roll == 3 then
@@ -458,43 +420,21 @@ function Imaginator:ActualFormulaMarine()
             end
         end
         randomspawn = potential//FindFreeSpace(potential, 2.5)
-            if randomspawn then
-                local nearestof = GetNearestMixin(randomspawn, "Construct", 1, 
-                function(ent) return ent:GetTechId() == tospawn
-                or ( ent:GetTechId() == kTechId.AdvancedArmory 
-                and tospawn == kTechId.Armory)  
-                or ( ent:GetTechId() == kTechId.ARCRoboticsFactory 
-                and tospawn == kTechId.RoboticsFactory) 
-                end)
+        if randomspawn then // if randomspawn is within X radius of a construct, find free space.
+            if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) or tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn)
+            or ( tospawn == kTechId.CommandStation and not GetSetupConcluded() and GetHasChairInRoom(randomspawn) ) then //Promotion spreading aboot
+                return
+            end
 
-                if nearestof then
-                    local range = GetRange(nearestof, randomspawn)
-                    --    Print("tospawn is %s, location is %s, range between is %s", tospawn, GetLocationForPoint(randomspawn).name, range)
-                    local minrange = nearestof.GetMinRangeAC and nearestof:GetMinRangeAC() or math.random(4,24) --nearestof:GetMinRangeAC()
-                        //Can eventually move this upwards to get only rooms without these in them ugh. Rather than blocking the entire function.
-                    if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) or tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn)
-                    or ( tospawn == kTechId.CommandStation and not GetSetupConcluded() and GetHasChairInRoom(randomspawn) ) then //Promotion spreading aboot
-                        return
-                    end
-
-                    if range >=  minrange  then
-                        entity = CreateEntityForTeam(tospawn, randomspawn, 1)
-                        SetDirectorLockedOnEntity(entity)
-                        if not GetSetupConcluded() then entity:SetConstructionComplete() end
-                            --  if gamestarted then entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost) end
-                            --BuildNotificationMessage(randomspawn, self, tospawn)
-                            success = true
-                        end --
-                    else -- it tonly takes 1!
-                        entity = CreateEntityForTeam(tospawn, randomspawn, 1)
-                        SetDirectorLockedOnEntity(entity)
-                        if not GetSetupConcluded() then entity:SetConstructionComplete() end
-                            --  if gamestarted then entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost) end
-                            success = true
-                        end
-                    end
+            entity = CreateEntityForTeam(tospawn, randomspawn, 1)
+            SetDirectorLockedOnEntity(entity)
+            if not GetSetupConcluded() then 
+                entity:SetConstructionComplete() 
+            end
+            success = true
           end
-  return success
+      end
+    return success
 end
 
 function Imaginator:MarineConstructs()
@@ -517,7 +457,7 @@ end
 function Imaginator:ShowWarningForToggleAliensOn(bool)
 
 end
-function Imaginator:Imaginations() 
+function Imaginator:Imaginations(doConduct) 
     if not GetGameStarted() then return end
     local Gamerules = GetGamerules()
     local team1Commander = Gamerules.team1:GetCommander()
@@ -540,11 +480,19 @@ function Imaginator:Imaginations()
     end
     
     if self.marineenabled then
-        self:MarineConstructs()
+        if doConduct then
+            self:DoConductors(true,false)
+        else
+            self:MarineConstructs()
+        end
     end
     
     if self.alienenabled then
-        self:AlienConstructs()
+        if doConduct then
+           self:DoConductors(false, true)
+        else
+            self:AlienConstructs()
+        end
     end
 
     return true
@@ -763,83 +711,39 @@ end
 
 function Imaginator:ActualAlienFormula()
     self:hiveSpawn()
-    local con = GetConductor()
-    con:ManageDrifters() 
-    //ManageCysts - look for struct without infestation, doChain for one then break
-    con:ManageShades()
-    con:ManageCrags() 
-    con:ManageShifts()
-    con:ManageWhips()
-    con:ManageCysts()
+
 
     local randomspawn = nil
-    local tospawn = GetAlienSpawnList(self) --, cost, gamestarted = GetAlienSpawnList(self)
-    //local spawnPointEnt  = getAlienConsBuildOrig(tospawn) 
+    local tospawn = GetAlienSpawnList(self) 
     local success = false
     local entity = nil
 
-    //if spawnNearEnt then
-     //   Print("ActualAlienFormula, spawnNearEnt %s, tospawn %s",  spawnPointEnt:GetMapName() or nil, LookupTechData(tospawn, kTechDataMapName)  )
-   // end
-
-//if spawnPointEnt and tospawn then 
-        if tospawn then    
+    if tospawn then    
         //print("ActualAlienFormula tospawn")
         local power = GetRandomDisabledPower()
         if power == nil then //hm?
             //print("ActualAlienFormula power is nil")
             local roll = math.random(1,3)
-        if roll == 3 then
-            self:ActualAlienFormula() return
-        else
-            return
-        end
-    end     
-    print("ActualAlienFormula randomspawn")
-    randomspawn = power:GetRandomSpawnPoint()  //FindFreeSpace(potential, math.random(2.5, 4) , math.random(8, 16), not tospawn == kTechId.Cyst )
-    if randomspawn then
-        local nearestof = GetNearestMixin(randomspawn, "Construct", 2, function(ent) return ent:GetTechId() == tospawn end)
-            if nearestof then
-            local range = GetRange(nearestof, randomspawn) --6.28 -- improved formula?
-            -- Print("ActualAlienFormula range is %s", range)
-            -- Print("tospawn is %s, location is %s, range between is %s", tospawn, GetLocationForPoint(randomspawn).name, range)
-            local minrange =  nearestof.GetMinRangeAC and nearestof:GetMinRangeAC() or math.random(4,8) --nearestof:GetMinRangeAC()
-            -- if tospawn == kTechId.NutrientMist then minrange = NutrientMist.kSearchRange end
-            if range >=  minrange then
-                --Print("ActualAlienFormula range range >=  minrange")
-                
-                
-                    if tospawn == kTechId.Tunnel and GetHasTunnelInRoom(randomspawn) then
-                        return
-                    end
-                
+            if roll == 3 then
+                self:ActualAlienFormula() return
+            else
+                return
+            end
+        end     
+        print("ActualAlienFormula randomspawn")
+        randomspawn = power:GetRandomSpawnPoint()  //FindFreeSpace(potential, math.random(2.5, 4) , math.random(8, 16), not tospawn == kTechId.Cyst )
+            if randomspawn then 
+                if tospawn == kTechId.Tunnel and GetHasTunnelInRoom(randomspawn) then
+                    return
+                end
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2)
                 SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 
                 end
-                --doChain(entity)
                  local csyt = CreateEntity(Cyst.kMapName, FindFreeSpace(entity:GetOrigin(), 1, kCystRedeployRange),2)
-                -- cost = GetAlienCostScalar(self, cost)
-                --  if gamestarted then
-                --	entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost)
-                -- end
             end
             success = true
-            else -- Make 1
-                    if tospawn == kTechId.Tunnel and GetHasTunnelInRoom(randomspawn) then
-                        return
-                    end
-                entity = CreateEntityForTeam(tospawn, randomspawn, 2)
-                local csyt = CreateEntity(Cyst.kMapName, FindFreeSpace(entity:GetOrigin(), 1, kCystRedeployRange),2)
-                SetDirectorLockedOnEntity(entity)
-                if not GetSetupConcluded() then
-                    entity:SetConstructionComplete() 
-                end
-                    --   if gamestarted then entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost) end
-                    success = true
-            end 
-        end
     end
     -- if success and entity then self:AdditionalSpawns(entity) end
     return success

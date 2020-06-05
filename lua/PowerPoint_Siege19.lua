@@ -1,4 +1,6 @@
 //Kyle 'Avoca' Abent
+
+
 if Server then 
     local origInit = PowerPoint.OnInitialized
     function PowerPoint:OnInitialized()
@@ -8,6 +10,16 @@ if Server then
     self.SpawnTableThree = {}
     self:GenerateTables()
     self.hasBeenToggledDuringSetup = false //OnReset???
+    
+    
+    //Moving these from imaginator to be per room basis
+   self.activeArmorys = 0
+   self.activeRobos = 0
+   self.activeBatteries = 0
+   self.activeObs = 0
+   self.activePGs = 0
+   self.activeProtos = 0
+    
     end
 
     //So every point will have three tables pre-configured/saved which will lessen dynamic calculations in game heh.
@@ -27,8 +39,8 @@ if Server then
                             //Rather than blindly looking. An analysis. 
                                 //So the table two index 0/1 will have an offset from the index from first table 0/1 that the first table 2/3 went a different direction from 
             
-            local maxAttempts = 100
-            local maxSizePer = 25
+            local maxAttempts = 200
+            local maxSizePer = 75
             //local allLocations = GetAllLocationsWithSameName(self:GetOrigin())
             
             local currentIndexLocation = nil
@@ -39,7 +51,7 @@ if Server then
                 if i == 0 then // start from power
                     currentIndexLocation = self:GetOrigin()
                     if currentIndexLocation ~= nil then 
-                        table.insert(self.SpawnTableOne, FindFreeSpace(currentIndexLocation,4,20) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
+                        table.insert(self.SpawnTableOne, FindFreeSpace(currentIndexLocation,4,40) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
                         currentIndexLocation = nil//temp
                     end
                 else //well i could be 1 but the index 0 could be empty. fuck. haha. Lets assume that the index 0 is ok. lol. Power origin should be fine.
@@ -47,7 +59,7 @@ if Server then
                     currentIndexLocation = self.SpawnTableOne[i-1]
                     if currentIndexLocation ~= nil then 
                         //table.insert(self.SpawnTableOne, currentIndexLocation)
-                        table.insert(self.SpawnTableOne, FindFreeSpace(currentIndexLocation,4,20) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
+                        table.insert(self.SpawnTableOne, FindFreeSpace(currentIndexLocation,4,40) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
                         currentIndexLocation = nil//temp
                     end
                     //Analyze previous entry
@@ -66,7 +78,7 @@ if Server then
             for i = 0, maxAttempts do 
                  currentIndexLocation = self.SpawnTableOne[i]
                     if currentIndexLocation ~= nil then 
-                        table.insert(self.SpawnTableTwo, FindFreeSpace(currentIndexLocation,4,20) )
+                        table.insert(self.SpawnTableTwo, FindFreeSpace(currentIndexLocation,4,40) )
                         currentIndexLocation = nil//temp
                     end
                 if #self.SpawnTableTwo == maxSizePer then
@@ -101,7 +113,6 @@ if Server then
         elseif whichTable == 3 then
             return table.random(self.SpawnTableThree)
         end
-
     end
     
     function PowerPoint:GetHasBeenToggledDuringSetup()
@@ -119,5 +130,42 @@ if Server then
         end
      end
      
+    local function GetMarineSpawnList(self)
+        local tospawn = {}
+             -----------------------------------------------------------------------------------------------
+        if self.activePGs < 1 then
+            table.insert(tospawn, kTechId.PhaseGate)
+        end --phaseavoca init
+        -------------------------------------------------------------------------------------------
+        if self.activeArmorys < 4 then
+            table.insert(tospawn, kTechId.Armory)
+        end
+        ---------------------------------------------------------------------------------------------
+        if self.activeRobos < 2 then
+            table.insert(tospawn, kTechId.RoboticsFactory)
+        end
+        ------------------------------------------------------------------------------------------------
+        if self.activeObs < 3 then
+            table.insert(tospawn, kTechId.Observatory)
+        end
+        -----------------------------------------------------------------------------------------------
+        if GetHasAdvancedArmory()  then
+            if self.activeProtos < 4 then
+                table.insert(tospawn, kTechId.PrototypeLab)
+            end
+        end
+        -------------------------------------------------------------------------------------------------
+
+        if self.activeBatteries < 1 then //or count of locations with built power up lol
+          table.insert(tospawn, kTechId.SentryBattery)
+        end
+        ----------------------------------------------------------------------------------------------------
+        return table.random(tospawn) //if empty..
+    end
+
+
+    function PowerPoint:GetRandomSpawnEntity()
+        return GetMarineSpawnList(self)
+    end
 
 end

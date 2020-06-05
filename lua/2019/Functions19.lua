@@ -340,16 +340,20 @@ function GetIsImaginatorAlienEnabled(point)
    return false
 end
 function FindFreeSpace(where, mindistance, maxdistance, infestreq)    
-     if not mindistance then mindistance = .5 end
+     if not mindistance then mindistance = 2 end
      if not maxdistance then maxdistance = 24 end
-        for index = 1, math.random(4,8) do
+        for index = 1, 50 do //#math.random(4,8) do
            local extents = LookupTechData(kTechId.Skulk, kTechDataMaxExtents, nil)
            local capsuleHeight, capsuleRadius = GetTraceCapsuleFromExtents(extents)  
-           local spawnPoint = GetRandomSpawnForCapsule(capsuleHeight, capsuleRadius, where, mindistance, maxdistance, EntityFilterAll())
-        
-           if spawnPoint ~= nil then
-             spawnPoint = GetGroundAtPosition(spawnPoint, nil, PhysicsMask.AllButPCs, extents)
+           //local spawnPoint = GetRandomSpawnForCapsule(capsuleHeight, capsuleRadius, where, mindistance, maxdistance, EntityFilterAll())
+           local spawnPoint = GetRandomPointsWithinRadius(GetGroundAtPosition(where, nil, PhysicsMask.AllButPCs, extents), mindistance, maxdistance, 20, 1, 1, nil, validationFunc)
+            if #spawnPoint == 1 then
+                spawnPoint = spawnPoint[1]
            end
+        
+          // if spawnPoint ~= nil then
+           //  spawnPoint = GetGroundAtPosition(spawnPoint, nil, PhysicsMask.AllButPCs, extents)
+           //end
         
            local location = spawnPoint and GetLocationForPoint(spawnPoint)
            local locationName = location and location:GetName() or ""
