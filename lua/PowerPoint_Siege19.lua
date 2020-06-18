@@ -56,17 +56,17 @@ discoEnabled = "boolean",
     
     
     function PowerPoint:ToggleCountMapName(mapname, count)
-        if string.find(mapname, "Armo") then
+        if string.find(mapname, "armor") then
             self.activeArmorys = self.activeArmorys + (count)
-        elseif string.find(mapname, "Obs") then
+        elseif string.find(mapname, "observ") then
              self.activeObs = self.activeObs + (count)
-        elseif string.find(mapname, "Robo") then
+        elseif string.find(mapname, "robo") then
              self.activeRobos = self.activeRobos + (count)
-        elseif string.find(mapname, "Batt") then
+        elseif string.find(mapname, "batter") then
              self.activeBatteries = self.activeBatteries + (count)
-        elseif string.find(mapname, "Pha") then
+        elseif string.find(mapname, "phase") then
              self.activePGs = self.activePGs + (count)
-        elseif string.find(mapname, "Pro") then
+        elseif string.find(mapname, "prot") then
              self.activeProtos = self.activeProtos + (count)
         end
     end
@@ -179,14 +179,14 @@ discoEnabled = "boolean",
         end
      end
      
-    local function GetMarineSpawnList(self)
+    local function GetMarineSpawnList(self) // Count should be based on size of location(s).
         local tospawn = {}
              -----------------------------------------------------------------------------------------------
         if self.activePGs < 1 then
             table.insert(tospawn, kTechId.PhaseGate)
-        end --phaseavoca init
+        end
         -------------------------------------------------------------------------------------------
-        if self.activeArmorys < 10 then //4 // Seriously I want to see how many armorys is too much lmfao
+        if self.activeArmorys < 4 then 
             table.insert(tospawn, kTechId.Armory)
         end
         ---------------------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ discoEnabled = "boolean",
         end
         -----------------------------------------------------------------------------------------------
         if GetHasAdvancedArmory()  then
-            if self.activeProtos < 4 then
+            if self.activeProtos < 2 then
                 table.insert(tospawn, kTechId.PrototypeLab)
             end
         end
@@ -214,6 +214,10 @@ discoEnabled = "boolean",
 
 
     function PowerPoint:GetRandomSpawnEntity()
+        /// self name has X number of X entity
+        local location = GetLocationForPoint(self:GetOrigin())
+        //print("%s has %s Observatory", ToString(location.name),  ToString(self.activeObs))
+
         return GetMarineSpawnList(self)
     end
 

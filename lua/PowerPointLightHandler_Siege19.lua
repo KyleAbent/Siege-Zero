@@ -45,12 +45,13 @@ function NormalLightWorker:Run()
          //Orig worker clears active lights. 
          self.activeLights:Clear()
          
-            for _, light in ipairs(self.handler.lightTable) do
-                self.activeLights:Insert(light) //We need this here because origworker deletes them all
-            end
+          //  for _, light in ipairs(self.handler.lightTable) do
+           //     self.activeLights:Insert(light) //We need this here because origworker deletes them all
+           // end
             
-            for renderLight in self.activeLights:IterateBackwards() do
-            // for _, renderLight in ipairs(GetLightsForLocation(self.handler.powerPoint:GetLocationName())) if I dont want to deal with active lights
+            //THE DISCO CANT STOP , WE ARE DOING ALL LIGHTS PER ROOM NOT JUST ACTIVE. CAN'T STOP THIS !!!! (sh_disco toggle off wont work, haha)
+           // for renderLight in self.activeLights:IterateBackwards() do
+             for _, renderLight in ipairs(GetLightsForLocation(self.handler.powerPoint:GetLocationName())) do //if I dont want to deal with active lights
                 SetLight(renderLight, intensity, Color( math.random(0.1, 1) , math.random(0.1, 1) , math.random(0.1, 1)) )
             end
             self.lastTime = Shared.GetTime()
