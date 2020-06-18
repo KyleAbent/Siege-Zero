@@ -9,9 +9,6 @@ function Crag:OnInitialized()
     self.lastWave = 0
 end
 
-function Crag:GetMinRangeAC()
-return CragAutoCCMR       
-end
  
 function Crag:GetIsWaveAllowed()
     return GetIsTimeUp(self.lastWave, kHealWaveCooldown)

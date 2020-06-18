@@ -27,7 +27,7 @@ if Server then
             GetImaginator().activeTunnels = GetImaginator().activeTunnels + 1
          end
          
-         Print("Self tech id is %s", ToString(self:GetTechId()) )
+         //Print("Self tech id is %s", ToString(self:GetTechId()) )
          
             if GetIsImaginatorAlienEnabled() then 
                    //local name = LookupTechData(self:GetTechId(), kTechDataDisplayName)
@@ -53,13 +53,13 @@ if Server then
                    if tunnel ~= self and tunnel:GetIsBuilt() and not tunnel:GetIsConnected() and not ( GetLocationForPoint(self:GetOrigin()) == GetLocationForPoint(tunnel:GetOrigin()) )  then 
                        match = tunnel
                        start = true
-                       print("Found match")
+                       //print("Found match")
                        break
                     end
                 end
             
               if start then
-                    print("Connecting!")
+                    //print("Connecting!")
                     local tunnel = match:GetTunnelEntity()
                         self:SetOtherEntrance(match)
                         match:SetOtherEntrance(self)

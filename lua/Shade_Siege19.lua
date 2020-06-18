@@ -1,7 +1,3 @@
-function Shade:GetMinRangeAC()
-    return ShadeAutoCCMR     
-end
-
 local origCons = Shade.OnConstructionComplete
 function Shade:OnConstructionComplete()
     origCons(self)

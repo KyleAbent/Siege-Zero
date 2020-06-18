@@ -1,9 +1,5 @@
 if Server then 
 
-    function Shift:GetMinRangeAC()
-        return ShiftAutoCCMR    
-    end
-
     function Shift:OnConstructionComplete()
         GetImaginator().activeShifts = GetImaginator().activeShifts + 1;  
     end

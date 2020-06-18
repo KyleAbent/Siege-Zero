@@ -1,14 +1,22 @@
 function Observatory:OnPowerOn()
-	 GetRoomPower(self).activeObs = GetImaginator().activeObs + 1;  
+	// GetRoomPower(self).activeObs = GetImaginator().activeObs + 1;  
+	 GetRoomPower(self):ToggleCountMapName(self:GetMapName(), 1)
 end
 
 function Observatory:OnPowerOff()
-	 GetRoomPower(self).activeObs = GetImaginator().activeObs - 1;  
+	 //GetRoomPower(self).activeObs = GetImaginator().activeObs - 1;  
+	 GetRoomPower(self):ToggleCountMapName(self:GetMapName(), -1)
 end
 
  function Observatory:PreOnKill(attacker, doer, point, direction)
       
 	  if self:GetIsPowered() then
-	    GetRoomPower(self).activeObs  = GetImaginator().activeObs- 1;  
+	   // GetRoomPower(self).activeObs  = GetImaginator().activeObs- 1;  
+	   GetRoomPower(self):ToggleCountMapName(self:GetMapName(),-1)
 	  end
 end
+
+
+//6.18.20 -- recent update had infinite entity spawn due to broken count haha. so much for lag!!!
+//These functions may be better as a mixin to seperate the need for splitting upon each class
+///use by GetMapName maybe, ah well. ..

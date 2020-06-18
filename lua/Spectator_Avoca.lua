@@ -90,7 +90,7 @@ function AvocaSpectator:OverrideInput(input)
           if  self.lockedId ~= Entity.invalidI then //elseif valid then breakchain and call for a new ?
             local target = Shared.GetEntity( self.lockedId ) 
               if target and  ( target.GetIsAlive and target:GetIsAlive() ) then
-                 if  HasMixin(target, "Construct")  or target:isa("Contamination") then input.move.x = input.move.x + 0.15 end
+                 if  HasMixin(target, "Construct")  or target:isa("Contamination") then input.move.x = input.move.x + 0.05 end
                  local distance = self:GetDistance(target)
                  if distance >= GetCDistance(target) then
                     //  Print("Distance %s lastzoom %s", distance, self.lastzoom) //debug my ass

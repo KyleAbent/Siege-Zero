@@ -1,15 +1,17 @@
 function SetDirectorLockedOnEntity(ent)
-    for _, director in ientitylist(Shared.GetEntitiesWithClassname("AvocaSpectator")) do
-        if director:CanChange() then
-             local viporigin = ent:GetOrigin()
-             director:SetOrigin(viporigin)
-             //director:SetOffsetAngles(ent:GetAngles()) //if iscam
-             //local dir = GetNormalizedVector(viporigin - director:GetOrigin())
-             //local angles = Angles(GetPitchFromVector(dir), GetYawFromVector(dir), 0)
-             //director:SetOffsetAngles(angles)
-             director:SetLockOnTarget(ent:GetId())
+    if ent ~= nil then 
+        for _, director in ientitylist(Shared.GetEntitiesWithClassname("AvocaSpectator")) do
+            if director:CanChange() then // well this is messy haha , why not have an active table? although would be constantly transition invalid and valid
+                 local viporigin = ent:GetOrigin()
+                 director:SetOrigin(viporigin)
+                 //director:SetOffsetAngles(ent:GetAngles()) //if iscam
+                 //local dir = GetNormalizedVector(viporigin - director:GetOrigin())
+                 //local angles = Angles(GetPitchFromVector(dir), GetYawFromVector(dir), 0)
+                 //director:SetOffsetAngles(angles)
+                 director:SetLockOnTarget(ent:GetId())
+            end
         end
-    end
+     end
 end
 function GetRandomConstructEntityNearMostRecentPlacedCyst()
    local conductor = GetConductor()

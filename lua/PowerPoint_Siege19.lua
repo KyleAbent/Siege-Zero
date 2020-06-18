@@ -2,32 +2,80 @@
 
 //These should reference Functions19.lua rather than powerpoint but w/e
 
-if Server then 
+local networkVars = { 
+
+discoEnabled = "boolean",
+}
+
+    function PowerPoint:ToggleDisco()
+        print("Toggling Disco")
+        self.discoEnabled = not self.discoEnabled
+        
+    end
+  
+    function PowerPoint:EnableDisco()
+        print("Enabling Disco")
+        self.discoEnabled = true
+        
+    end
+  
+    function PowerPoint:GetIsDisco()
+       
+        if self.discoEnabled then
+            // print("PP GetIsDisco is true")
+             return true
+         end
+         
+         //print("PP GetIsDisco is false")
+        return false 
+ 
+    end
     local origInit = PowerPoint.OnInitialized
     function PowerPoint:OnInitialized()
     origInit(self)
-    self.SpawnTableOne = {}
-    self.SpawnTableTwo = {}
-    self.SpawnTableThree = {}
-    self:GenerateTables()
-    self.hasBeenToggledDuringSetup = false //OnReset???
+       self.discoEnabled = false
+    if Server then 
+        self.SpawnTableOne = {}
+        self.SpawnTableTwo = {}
+        self.SpawnTableThree = {}
+        self:GenerateTables()
+        self.hasBeenToggledDuringSetup = false //OnReset???
+        
+        
+        //Moving these from imaginator to be per room basis
+       self.activeArmorys = 0
+       self.activeRobos = 0
+       self.activeBatteries = 0
+       self.activeObs = 0
+       self.activePGs = 0
+       self.activeProtos = 0
+    end
+   end
+    
+    if Server then 
     
     
-    //Moving these from imaginator to be per room basis
-   self.activeArmorys = 0
-   self.activeRobos = 0
-   self.activeBatteries = 0
-   self.activeObs = 0
-   self.activePGs = 0
-   self.activeProtos = 0
-    
+    function PowerPoint:ToggleCountMapName(mapname, count)
+        if string.find(mapname, "Armo") then
+            self.activeArmorys = self.activeArmorys + (count)
+        elseif string.find(mapname, "Obs") then
+             self.activeObs = self.activeObs + (count)
+        elseif string.find(mapname, "Robo") then
+             self.activeRobos = self.activeRobos + (count)
+        elseif string.find(mapname, "Batt") then
+             self.activeBatteries = self.activeBatteries + (count)
+        elseif string.find(mapname, "Pha") then
+             self.activePGs = self.activePGs + (count)
+        elseif string.find(mapname, "Pro") then
+             self.activeProtos = self.activeProtos + (count)
+        end
     end
 
     //So every point will have three tables pre-configured/saved which will lessen dynamic calculations in game heh.
 
 
     function PowerPoint:GenerateTables()
-        print("Powerpoint Generating spawn tables")
+        //print("Powerpoint Generating spawn tables")
         
         //Unfortunately, cross reference previous spawnpoints ensuring current spawnpoint eligibility. 
             //Although in theory this is a f* headeache. 
@@ -104,7 +152,7 @@ if Server then
     end
 
     function PowerPoint:GetRandomSpawnPoint()
-    print("PowerPoint GetRandomSpawnPoint")
+    //print("PowerPoint GetRandomSpawnPoint")
     local whichTable = math.random(1,3)
         //Well assuming the spot isn't taken. Which it will be. Sometimes. on occasion. it will happen. lol.
         if whichTable == 1 then
@@ -170,3 +218,5 @@ if Server then
     end
 
 end
+
+Shared.LinkClassToMap("PowerPoint", PowerPoint.kMapName, networkVars)

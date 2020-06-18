@@ -1,7 +1,3 @@
-function ArmsLab:GetMinRangeAC()
-    return ArmsLabAutoCCMR 
-end
-
 function ArmsLab:OnPowerOn()
 	 GetImaginator().activeArms = GetImaginator().activeArms + 1;  
 end

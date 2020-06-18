@@ -22,13 +22,6 @@ local networkVars =
 function Imaginator:OnCreate()
    self.alienenabled = false
    self.marineenabled = false
-   self.activeArmorys = 0
-   self.activeRobos = 0
-   self.activeIPS = 0
-   self.activeBatteries = 0
-   self.activeObs = 0
-   self.activePGs = 0
-   self.activeProtos = 0
    self.activeArms = 0
    self.activeWhips = 0
    self.activeCrags = 0
@@ -412,18 +405,13 @@ function Imaginator:ActualFormulaMarine()
     end
     
     if tospawn and powerpoint then
-        local potential = powerpoint:GetRandomSpawnPoint() //hmm?
-        if potential == nil then local roll = math.random(1,3)
-            if roll == 3 then
-                self:ActualFormulaMarine() return
-            else
+        local potential = powerpoint:GetRandomSpawnPoint() 
+            if potential == nil then 
                 return
             end
-        end
-        randomspawn = potential//FindFreeSpace(potential, 2.5)
-        if randomspawn then // if randomspawn is within X radius of a construct, find free space.
-            if tospawn == kTechId.PhaseGate and GetHasPGInRoom(randomspawn) or tospawn == kTechId.SentryBattery and GetHasBatteryInRoom(randomspawn)
-            or ( tospawn == kTechId.CommandStation and not GetSetupConcluded() and GetHasChairInRoom(randomspawn) ) then //Promotion spreading aboot
+        randomspawn = FindFreeSpace(potential, 4)
+        if randomspawn then 
+            if ( tospawn == kTechId.CommandStation and not GetSetupConcluded() and GetHasChairInRoom(randomspawn) ) then 
                 return
             end
 
@@ -746,7 +734,7 @@ local function doSpawn(self,tospawn,randomspawn)
                     end
                 end
                 
-                entity = CreateEntityForTeam(tospawn, randomspawn, 2)
+                entity = CreateEntityForTeam(tospawn, randomspawn, 2) // FindFreeSpace?
                 SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 

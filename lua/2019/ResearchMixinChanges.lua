@@ -60,8 +60,8 @@ if Server then
             //remove those counting digest so it doesnt go down below
             //remove it by trimming it before it gets added
             if techIds == nil or #techIds == 0 then 
-                print("Removing entity from being able to research")
-                print(self:GetMapName())
+                //print("Removing entity from being able to research")
+                //print(self:GetMapName())
                 return false 
             end // false?
             
