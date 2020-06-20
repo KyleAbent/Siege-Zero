@@ -1,15 +1,15 @@
-function SentryBattery:OnPowerOn()
-	 GetRoomPower(self):ToggleCountMapName(self:GetMapName(),1)
+local origInit = SentryBattery.OnInitialized 
+
+function SentryBattery:OnInitialized()
+    origInit(self)
+    if Server then
+        GetRoomPower(self):ToggleCountMapName(self:GetMapName(),1)
+    end
 end
 
-function SentryBattery:OnPowerOff()
-	GetRoomPower(self):ToggleCountMapName(self:GetMapName(),-1)
-end
 
  function SentryBattery:PreOnKill(attacker, doer, point, direction)
-	  if self:GetIsPowered() then
 	    GetRoomPower(self):ToggleCountMapName(self:GetMapName(),-1)
-	  end
 end
 
 //6.18.20 -- recent update had infinite entity spawn due to broken count haha. so much for lag!!!

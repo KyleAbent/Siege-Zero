@@ -63,6 +63,8 @@ ModLoader.SetupFileHook( "lua/Hydra.lua", "lua/Hydra_Siege19.lua", "post" ) --hm
 
 ModLoader.SetupFileHook( "lua/Player.lua", "lua/Player_Siege19.lua", "post" ) --hmm?
 
+ModLoader.SetupFileHook( "lua/Player_Client.lua", "lua/Player_Client_Siege19.lua", "post" ) --hmm?
+
 
 ModLoader.SetupFileHook( "lua/RoboticsFactory.lua", "lua/RoboticsFactory_Siege19.lua", "post" ) --hmm?
 
@@ -82,8 +84,6 @@ ModLoader.SetupFileHook( "lua/Exosuit.lua", "lua/Exosuit_Siege19.lua", "post" )
 ModLoader.SetupFileHook( "lua/Skulk.lua", "lua/Skulk_Siege19.lua", "post" )
 ModLoader.SetupFileHook( "lua/Lerk.lua", "lua/Lerk_Siege19.lua", "post" )
 ModLoader.SetupFileHook( "lua/Gorge.lua", "lua/Gorge_Siege19.lua", "post" )
-
---ModLoader.SetupFileHook( "lua/SentryBattery.lua", "lua/2019/BackupBattery.lua", "post" )
 
 ModLoader.SetupFileHook( "lua/Weapons/Marine/ExoWeaponHolder.lua", "lua/Weapons/Marine/ExoWeaponHolder_Siege19.lua", "post" )
 
