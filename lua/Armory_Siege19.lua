@@ -1,5 +1,5 @@
 function Armory:OnPowerOn()
-	GetRoomPower(self):ToggleCountMapName(self:GetMapName(),-1)
+	GetRoomPower(self):ToggleCountMapName(self:GetMapName(),1)
 end
 
 function Armory:OnPowerOff()

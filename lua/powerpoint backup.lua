@@ -53,8 +53,7 @@ discoEnabled = "boolean",
     if Server then 
     
     
-    function PowerPoint:ToggleCountMapName(mapname, count)//although onpoweron may never register...?
-        Print("ToggleCountMapName mapname %s, count %s", mapname, count)
+    function PowerPoint:ToggleCountMapName(mapname, count)
         if string.find(mapname, "armor") then
             self.activeArmorys = self.activeArmorys + (count)
         elseif string.find(mapname, "observ") then
@@ -74,21 +73,66 @@ discoEnabled = "boolean",
 
 
     function PowerPoint:GenerateTables()
-            local maxAttempts = 800 //1200
-            local maxSizePer = 400
+        //print("Powerpoint Generating spawn tables")
+        
+        //Unfortunately, cross reference previous spawnpoints ensuring current spawnpoint eligibility. 
+            //Although in theory this is a f* headeache. 
+                //(Like it would be neat to remove the used , insert back when used to unused and such)
+            
+            //So for the first one. Start by looking at a free space from the powerpoint. A distance a way.
+                //Then the second, build from the first. Look a space from the first. A distance. 
+                    //Then the third from the second. 
+                        //Each building from previous 
+                            //Rather than blindly looking. An analysis. 
+                                //So the table two index 0/1 will have an offset from the index from first table 0/1 that the first table 2/3 went a different direction from 
+            
+            local maxAttempts = 200
+            local maxSizePer = 75
+            //local allLocations = GetAllLocationsWithSameName(self:GetOrigin())
+            
+            local currentIndexLocation = nil
+            
+            //One
             for i = 0, maxAttempts do 
-                   table.insert(self.SpawnTableOne, FindFreeSpace( self:GetOrigin() ,4,70) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
-                   currentIndexLocation = nil//temp
-               
+            
+                if #self.SpawnTableOne == 0 then // start from power
+                    currentIndexLocation = self:GetOrigin()
+                    if currentIndexLocation ~= nil then 
+                        table.insert(self.SpawnTableOne, FindFreeSpace(currentIndexLocation,4,40) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
+                        currentIndexLocation = nil//temp
+                    end
+                else //well i could be 1 but the index 0 could be empty. fuck. haha. Lets assume that the index 0 is ok. lol. Power origin should be fine.
+                    //currentIndexLocation = FindFreeSpace(self.SpawnTableOne[i-1], 4, 20) this errors, last index nil. try moving.
+                        local lastIndex = #self.SpawnTableOne
+                        table.insert(self.SpawnTableOne, FindFreeSpace(self.SpawnTableOne[lastIndex],4,40) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
+                        currentIndexLocation = nil//temp
+
+                    //Analyze previous entry
+                end
+          
+                //Make sure this does not get in way of previous entry? if possible.. 
+                
                 if #self.SpawnTableOne == maxSizePer then
                     break
                 end
                 
-            end 
+            end
+            
+            
+
     end
 
     function PowerPoint:GetRandomSpawnPoint()
+    //print("PowerPoint GetRandomSpawnPoint")
+    local whichTable = math.random(1,3)
+        //Well assuming the spot isn't taken. Which it will be. Sometimes. on occasion. it will happen. lol.
+        if whichTable == 1 then
             return table.random(self.SpawnTableOne)
+        elseif whichTable == 2 then
+            return table.random(self.SpawnTableTwo)
+        elseif whichTable == 3 then
+            return table.random(self.SpawnTableThree)
+        end
     end
     
     function PowerPoint:GetHasBeenToggledDuringSetup()
@@ -143,11 +187,7 @@ discoEnabled = "boolean",
     function PowerPoint:GetRandomSpawnEntity()
         /// self name has X number of X entity
         local location = GetLocationForPoint(self:GetOrigin())
-        Print("%s has %s Observatory", ToString(location.name),  ToString(self.activeObs))
-        Print("%s has %s Armory", ToString(location.name),  ToString(self.activeArmorys))
-        Print("%s has %s Robo", ToString(location.name),  ToString(self.activeRobos))
-        Print("%s has %s PG", ToString(location.name),  ToString(self.activePGs))
-        Print("%s has %s Proto", ToString(location.name),  ToString(self.activeProtos))
+        //print("%s has %s Observatory", ToString(location.name),  ToString(self.activeObs))
 
         return GetMarineSpawnList(self)
     end

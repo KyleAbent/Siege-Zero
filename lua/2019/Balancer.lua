@@ -116,10 +116,10 @@ end
         //egg:SetHive(GetRandomHive())
 
         local imaginator = GetImaginator()
-        On_Contam_chanceWhip(origin,imaginator)
-        On_Contam_chanceShift(origin,imaginator)
-        On_Contam_chanceShade(origin,imaginator)
-        On_Contam_chanceCrag(origin,imaginator)
+        //On_Contam_chanceWhip(origin,imaginator)
+        //On_Contam_chanceShift(origin,imaginator)
+        //On_Contam_chanceShade(origin,imaginator)
+        //On_Contam_chanceCrag(origin,imaginator)
         On_Contam_chanceHydra(origin)
         On_Contam_chanceRupture(origin)
        

@@ -1,4 +1,4 @@
-kAutoCommMaxWhips = 20
+kAutoCommMaxWhips = 12
 
 kFrontTime = 300
 kSiegeTime = 930

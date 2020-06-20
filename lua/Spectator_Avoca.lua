@@ -31,7 +31,7 @@ end
 function AvocaSpectator:SetLockOnTarget(userid)
     self.lockedId = userid
     Print("AvocaSpectator ChangeView")
-    self.nextangle = math.random(4,8)
+    self.nextangle = 1//math.random(4,8)
     self.lastswitch = Shared.GetTime()
     self:LockAngles()
 end
