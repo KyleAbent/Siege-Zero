@@ -1,3 +1,46 @@
+
+function GetRange(who, where)
+    local ArcFormula = (where - who:GetOrigin()):GetLengthXZ()
+    return ArcFormula
+end
+function GetIsOriginInHiveRoom(point)  
+ local location = GetLocationForPoint(point)
+ local hivelocation = nil
+     local hives = GetEntitiesWithinRange("Hive", point, 999)
+     if not hives then return false end
+     
+     for i = 1, #hives do  --better way to do this i know
+     local hive = hives[i]
+     hivelocation = GetLocationForPoint(hive:GetOrigin())
+     break
+     end
+     
+     if location == hivelocation then return true end
+     
+     return false
+     
+end
+function GetPossibleAlienResRoomNode()
+    //if one res point has about 4 others in close radius?
+    local possible = {}
+    local count = 5
+  for _, respoint in ientitylist(Shared.GetEntitiesWithClassname("ResourcePoint")) do
+            local resnodes = GetEntitiesWithinRange("ResourcePoint", respoint:GetOrigin(), 20) //try catch in the function calling
+            for i = 1, #resnodes do 
+                local resnode = resnodes[i]
+                if GetLocationForPoint(resnode:GetOrigin()) == GetLocationForPoint(respoint:GetOrigin()) then
+                    count = count + 1
+                    if count >= 5 then
+                        table.insert(possible, GetPowerPointForLocation( GetLocationForPoint( respoint:GetOrigin() ).name ) )
+                        break
+                    end
+                end
+            end
+  end
+  
+  return possible
+  
+end
 function SetDirectorLockedOnEntity(ent)
     if ent ~= nil then 
         for _, director in ientitylist(Shared.GetEntitiesWithClassname("AvocaSpectator")) do
@@ -190,7 +233,7 @@ function isPathable(position)
     local walk = Pathing.GetIsFlagSet(position, kExtents, Pathing.PolyFlag_Walk)
     return not noBuild and walk
 end
-function TresCheck(team, cost)
+function TresCheck(team, cost)//True if setup ???
     if team == 1 then
         return GetGamerules().team1:GetTeamResources() >= cost
     elseif team == 2 then
@@ -593,7 +636,7 @@ if siegeloc then return siegeloc end
  return nil
 end
 
-function GetIsOriginInHiveRoom(point)  
+function GetOriginInHiveRoom(point)  
  local location = GetLocationForPoint(point)
  local hivelocation = nil
      local hives = GetEntitiesWithinRange("Hive", point, 999)
@@ -610,7 +653,22 @@ function GetIsOriginInHiveRoom(point)
      return false
      
 end
-
+function GetHiveRoomPower(point)  
+ local hivelocation = nil
+  local hivepower = nil
+     local hives = GetEntitiesWithinRange("Hive", point, 999) //well this may not be the main room we want if the hive is not in the initia lhive room.. like trainsiege/domesiege 4th tech point. but w/e
+     if not hives then return false end
+     
+     for i = 1, #hives do  --better way to do this i know
+         local hive = hives[i]
+         hivelocation = GetLocationForPoint(hive:GetOrigin())
+         break
+     end
+     
+     if hivelocation then
+        return GetPowerPointForLocation(hivelocation.name)
+     end
+end
 function GetIsTimeUp(timeof, timelimitof)
  local time = Shared.GetTime()
  local boolean = (timeof + timelimitof) < time

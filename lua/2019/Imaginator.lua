@@ -157,14 +157,14 @@ local function DropWeaponsJetpacksExos(who, self)
      
 end
 
-local function OrganizedIPCheck(who, self)
+local function OrganizedIPCheck(who, self) //spacecow:CC SPawned on top, IPS spawned below/not found/outside of Y Radius! HAH. Lame.
     if not who:GetIsBuilt() then
         return
     end
 
     local count = 0
     //local findFree = FindFreeSpace(who:GetOrigin(), 1, kInfantryPortalAttachRange)
-    local ipsInRange = GetEntitiesForTeamWithinRange("InfantryPortal", 1, who:GetOrigin(), kInfantryPortalAttachRange)
+    local ipsInRange = GetEntitiesForTeamWithinRange("InfantryPortal", 1, who:GetOrigin(), kInfantryPortalAttachRange)//Search Y Radius? lol
     //and activeIPS <= numofChairs*3/4
     if #ipsInRange >= math.random(3,4) then//self.activeIPS >= 8 then //do a check for within range so that each base has its own
      return
@@ -172,7 +172,7 @@ local function OrganizedIPCheck(who, self)
 
     --for i = 1, math.abs( 2 - count ) do --one at a time
     //local cost = 20
-    //if TresCheck(1, cost) then
+    if TresCheck(1, kInfantryPortalCost) then
         local where = who:GetOrigin()
         local origin = FindFreeSpace(where, 4, kInfantryPortalAttachRange)
             if origin ~= where then
@@ -180,20 +180,22 @@ local function OrganizedIPCheck(who, self)
             SetDirectorLockedOnEntity(ip)
                 if not GetSetupConcluded() then 
                      ip:SetConstructionComplete()
-                    //ip:GetTeam():SetTeamResources(ip:GetTeam():GetTeamResources() - cost)
+                     ip:GetTeam():SetTeamResources(ip:GetTeam():GetTeamResources() - kInfantryPortalCost)
                 end
             end
-    //end
+    end
     
     //May have to re-introduce armslab here if it doesn't spawn fast enough after round start lol
     //Unless the work around to that is the MarineInitialBaseSpawn creating an ArmsLab...
     
       //Bad for if aliens take it down then they get no reward of unpowered marines
       //unless marines dont build it lol
-      if self.activeArms <= 1 then
+      if self.activeArms <= 1 and TresCheck(1, kArmsLabCost) then
+        local where = who:GetOrigin()
         local origin = FindFreeSpace(where, 4, kInfantryPortalAttachRange)
         local arms = CreateEntity(ArmsLab.kMapName, origin,  1)
         SetDirectorLockedOnEntity(arms)
+        arms:GetTeam():SetTeamResources(arms:GetTeam():GetTeamResources() - kArmsLabCost)
           if not GetSetupConcluded() then
             arms:SetConstructionComplete()
           end
@@ -215,18 +217,18 @@ local function OrganizedSentryCheck(who, self)
 
     --for i = 1, math.abs( 2 - count ) do --one at a time
     //local cost = 20
-    //if TresCheck(1, cost) then
+    if TresCheck(1, kSentryCost) then
         local where = who:GetOrigin()
         local origin = FindFreeSpace(where, 1, 4)//range of battery??
             if origin ~= where then
             local sentry = CreateEntity(Sentry.kMapName, origin, 1)
             SetDirectorLockedOnEntity(sentry)
                 if not GetSetupConcluded() then sentry:SetConstructionComplete() end
-                    //sentry:GetTeam():SetTeamResources(sentry:GetTeam():GetTeamResources() - cost)
+                    sentry:GetTeam():SetTeamResources(sentry:GetTeam():GetTeamResources() - kSentryCost)
                 //end
             end
 
-    //end
+    end
 
 end
 local function HaveBatteriesCheckSentrys(self)
@@ -290,8 +292,9 @@ local function ManageRoboticFactories() //If bad perf can be modified to do one 
     for index, robo in ipairs(GetEntitiesForTeam("RoboticsFactory", 1)) do
         if robo:GetIsBuilt() and not robo.open and not robo:GetIsResearching() and robo:GetIsPowered() then
             //Prioritize Macs if not siege room open
-            if not isSiege and not #macs or #macs <6 then // Make this cost tres?
+            if not isSiege and not #macs or #macs <6 and TresCheck(1, kMACCost)  then // Make this cost tres?
                  robo:OverrideCreateManufactureEntity(kTechId.MAC)
+                 robo:GetTeam():SetTeamResources(robo:GetTeam():GetTeamResources() - kMACCost)
                 //Well the way this is written, if two robos calculate this at once. at 5 macs. <6 .Then both create macs at same time. 7 macs.
                 //This can be moved down below with arc spawn.
             else
@@ -318,8 +321,8 @@ local function ManageRoboticFactories() //If bad perf can be modified to do one 
 
     local ArcCount = #GetEntitiesForTeam( "ARC", 1 )
 
-    if ArcCount < 9 then --and TresCheck(1, kARCCost) then
-        -- ARCRobo:GetTeam():SetTeamResources(ARCRobo:GetTeam():GetTeamResources() - kARCCost)
+    if ArcCount < 9 and TresCheck(1, kARCCost) then
+        ARCRobo:GetTeam():SetTeamResources(ARCRobo:GetTeam():GetTeamResources() - kARCCost)
         ARCRobo:OverrideCreateManufactureEntity(kTechId.ARC)
     end
 
@@ -335,12 +338,12 @@ local function GetMarineSpawnList(self)
             CCs = CCs + 1
         end
 
-    if CCs < 3  and CCs >= 1 and GetSetupConcluded() then
+    if CCs < 3  and CCs >= 1 and GetSetupConcluded() and TresCheck(1, kCommandStationCost) then
         return kTechId.CommandStation
     end
 
     local  CommandStation = #GetEntitiesForTeam( "CommandStation", 1 )
-    if CommandStation < 3 then
+    if CommandStation < 3 and TresCheck(1, kCommandStationCost) then
         table.insert(tospawn, kTechId.CommandStation)
     end
     ----------------------------------------------------------------------------------------------------
@@ -355,10 +358,6 @@ local function GetMarineSpawnList(self)
     ----------------------------------------------------------------------------------------------------------
 end
 
-local function GetRange(who, where)
-    local ArcFormula = (where - who:GetOrigin()):GetLengthXZ()
-    return ArcFormula
-end
 
 function Imaginator:DoConductors(marine, alien)
     local con = GetConductor()
@@ -414,8 +413,13 @@ function Imaginator:ActualFormulaMarine()
             if ( tospawn == kTechId.CommandStation and not GetSetupConcluded() and GetHasChairInRoom(randomspawn) ) then 
                 return
             end
-
+            //Trescheck was done in pre-qual but it could probably requrie another check as if 
+            //implementing res spending in multiple areas may have a lot happen between then and now. 
+            // I'm not sure yet. Haha. Tres spendature sounds scary for AutoComm, no? 
+            //Then again perhaps proper delay to combat lag. Maybe 999 max? Lets see. lol. 
+             
             entity = CreateEntityForTeam(tospawn, randomspawn, 1)
+            entity:GetTeam():SetTeamResources( entity:GetTeam():GetTeamResources() - GetCachedTechData(tospawn, kTechDataCostKey) )
             //if entity:isa("RoboticsFactory") then
              //   local randomAngle = Randomizer() * math.pi * 2
             //    entity:SetAngles(randomAngle)
@@ -509,19 +513,19 @@ local function GetAlienSpawnList(self)
         end
     end
 
-    if self.activeShifts < 14 then
+    if self.activeShifts < 14 and TresCheck(2,kShiftCost) then
         table.insert(tospawn, kTechId.Shift)
     end
 
-    if self.activeWhips < kAutoCommMaxWhips then
+    if self.activeWhips < kAutoCommMaxWhips and TresCheck(2,kWhipCost)  then
         table.insert(tospawn, kTechId.Whip)
     end
 
-    if  self.activeCrags < 13 then
+    if  self.activeCrags < 13 and TresCheck(2,kCragCost) then
         table.insert(tospawn, kTechId.Crag)
     end
 
-    if  self.activeShades < 12 then
+    if  self.activeShades < 12 and TresCheck(2,kShadeCost) then
         table.insert(tospawn, kTechId.Shade)
     end
 
@@ -549,20 +553,20 @@ local function UpgChambers()
 
     if GetHasShiftHive() then
           local Spur = #GetEntitiesForTeam( "Spur", 2 )
-          if Spur < 3 then
+          if Spur < 3  and TresCheck(2, kSpurCost)  then
            table.insert(tospawn, kTechId.Spur)
           end
        end
 
     if GetHasCragHive()  then
         local  Shell = #GetEntitiesForTeam( "Shell", 2 )
-        if Shell < 3 then
+        if Shell < 3 and TresCheck(2, kShellCost) then
          table.insert(tospawn, kTechId.Shell) end
         end
 
-    if GetHasShadeHive() then
+    if GetHasShadeHive()  then
         local  Veil = #GetEntitiesForTeam( "Veil", 2 )
-        if Veil < 3 then
+        if Veil < 3 and TresCheck(2, kVeilCost) then
          table.insert(tospawn, kTechId.Veil)
         end
     end
@@ -575,7 +579,7 @@ local function UpgChambers()
     end
 
     local finalchoice = table.random(canafford)
-    local finalcost = 0 // LookupTechData(finalchoice, kTechDataCostKey)
+    local finalcost = LookupTechData(finalchoice, kTechDataCostKey)
     //finalcost = 0 //not gamestarted and 0 or finalcost
     --Print("GetAlienSpawnList() UpgChambers() return finalchoice %s, finalcost %s", finalchoice, finalcost)
     return finalchoice, finalcost, gamestarted
@@ -601,16 +605,17 @@ function Imaginator:DoBetterUpgs()
         if randomspawn then
 
             local entity = CreateEntityForTeam(tospawn, randomspawn, 2)
+            
             SetDirectorLockedOnEntity(entity)
             if not GetSetupConcluded() then
              entity:SetConstructionComplete()
             end
 
-            /*
+            
             if gamestarted then
              entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - cost)
             end
-            */
+            
 
         end
   end
@@ -716,7 +721,10 @@ local function checkWhip(self,tospawn,randomspawn)
     if chance <= 30 then //too high?
         for i = 1, kAutoCommMaxWhips - self.activeWhips do //clamp not necessary if we know our current is below limit haha
                                         //FindFreeSpace(randomspawn) ???
-            entity = CreateEntityForTeam(tospawn, randomspawn, 2) //MWHAHAHAHAHAHAH //boolean whipArmy == true , move all at once? LMAO //
+            if TresCheck(2, kWhipCost) then
+                entity = CreateEntityForTeam(tospawn, randomspawn, 2) //MWHAHAHAHAHAHAH //boolean whipArmy == true , move all at once? LMAO //
+                entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - kWhipCost)
+            end
         end
         return true
     end
@@ -735,6 +743,7 @@ local function doSpawn(self,tospawn,randomspawn)
                 end
                 
                 entity = CreateEntityForTeam(tospawn, randomspawn, 2) // FindFreeSpace?
+                entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - GetCachedTechData(tospawn, kTechDataCostKey) )
                 SetDirectorLockedOnEntity(entity)
                 if not GetSetupConcluded() then
                     entity:SetConstructionComplete() 

@@ -32,7 +32,7 @@ function NormalLightWorker:Run()
 
     PROFILE("NormalLightWorker:Run")
 
-    if  self.handler.powerPoint:GetIsDisco() then
+    if  true then--self.handler.powerPoint:GetIsDisco() then
         local time = Shared.GetTime()
 
         if not self.lastTime then

@@ -203,14 +203,17 @@ local function Touch(who, where, what, number)
  local tower = CreateEntityForTeam(what, where, number, nil)
    if not GetSetupConcluded() then tower:SetConstructionComplete() end
          if tower then
+            local cost = kExtractorCost
             who:SetAttached(tower)
             if number == 2 then
+               cost = kHarvesterCost
              --doChain(tower)
               local cyst = CreateEntity(Cyst.kMapName, FindFreeSpace(tower:GetOrigin(), 1, kCystRedeployRange),2)
                           if not GetSetupConcluded() then
                                -- cyst:SetConstructionComplete()
                            end
             end
+           -- tower:GetTeam():SetTeamResources(tower:GetTeam():GetTeamResources() - cost)
             return tower
          end
 end
@@ -218,9 +221,9 @@ end
 
 local function Envision(self,who, which)
     local imaginator = GetImaginator()
-   if which == 1 and imaginator:GetIsMarineEnabled() then
+   if which == 1 and imaginator:GetIsMarineEnabled() then --and TresCheck(1, kExtractorCost) then if we have extractor being prioritized to be build yes, but now its spread and not written this way
      Touch(who, who:GetOrigin(), kTechId.Extractor, 1)
-   elseif which == 2 and imaginator:GetIsAlienEnabled() then
+   elseif which == 2 and imaginator:GetIsAlienEnabled() then --and TresCheck(1, kHarvesterCost)  then
     Touch(who, who:GetOrigin(), kTechId.Harvester, 2)
     end
 end
@@ -265,11 +268,53 @@ local function BuildAllNodes(self)
 
 end
 
+local function BuildAllNodes(self)
+
+
+end//Kyle Abent :P
+local function KillAlienResRoomPower(self)
+    //Room power of location with the most resource nodes which is the closest location to the hive room.
+    local hivepower = GetHiveRoomPower(self:GetOrigin())
+    local roomswithresnodes = GetPossibleAlienResRoomNode()
+    local closestDistance = 999
+    local closestIndex = -1
+    print("KillAlienResRoomPower")
+    if hivepower then
+        print("HivePower")
+        if roomswithresnodes then
+            print("roomswithresnodes")
+            for i = 1, #roomswithresnodes do
+                print("for roomswithresnodes")
+                local node = roomswithresnodes[i]
+                local dist = GetRange(hivepower, node:GetOrigin()) 
+                if dist < closestDistance then
+                    print("dist < closestDistance")
+                    closestDistance = dist
+                    closestIndex = i
+                end
+            end
+            if closestIndex ~= -1 then
+                 print("closestIndex ~= -1")
+                 local whichNode = roomswithresnodes[closestIndex]
+                 whichNode:SetConstructionComplete()
+                 whichNode.hasBeenToggledDuringSetup = true
+                 whichNode:SetInternalPowerState(PowerPoint.kPowerState.socketed)
+                 whichNode:SetConstructionComplete()
+                 whichNode:Kill()
+             end
+        end
+    end
+    
+
+end
 function Conductor:OnRoundStart()
            if Server then
               BuildAllNodes(self)
-              self:SpawnInitialStructures()
+              KillAlienResRoomPower(self)
             end
+            
+            //self.alienresroom = .... 
+            //if alien res room under attack , consider not dropping other structures until prioritizing harvester rebuild. ???
 end
 
 /*

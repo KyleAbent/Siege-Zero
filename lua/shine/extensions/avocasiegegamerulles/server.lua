@@ -202,13 +202,13 @@ end
 local function GiveTimersToAll()
               //GetDoorLengthByMapName()
               local Players = Shine.GetAllPlayers()
-			   //AddFrontTimer(nil)
-			   //AddSiegeTimer(nil)
-               for i = 1, #Players do
-                   local Player = Player[ i ]//:GetControllingPlayer()
-                   AddFrontTimer(Player)
-                   AddSiegeTimer(Player)
-               end
+			   AddFrontTimer(nil)
+			   AddSiegeTimer(nil)
+           //    for i = 1, #Players do
+            //       local Player = Player[ i ]//:GetControllingPlayer()
+           //        AddFrontTimer(Player)
+           //        AddSiegeTimer(Player)
+           //    end
 end
 ------------------------------------------------------------
 
@@ -247,6 +247,7 @@ function Plugin:SetGameState( Gamerules, State, OldState )
          kgameStartTime = Shared.GetTime()
          GiveTimersToAll()
          OpenAllBreakableDoors()
+         GetConductor():OnRoundStart()
       else
          Shine.ScreenText.End(1) 
          Shine.ScreenText.End(2)

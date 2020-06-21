@@ -54,6 +54,7 @@ discoEnabled = "boolean",
     
     
     function PowerPoint:ToggleCountMapName(mapname, count)//although onpoweron may never register...?
+        if not GetGameStarted() then return end
         Print("ToggleCountMapName mapname %s, count %s", mapname, count)
         if string.find(mapname, "armor") then
             self.activeArmorys = self.activeArmorys + (count)
@@ -74,8 +75,8 @@ discoEnabled = "boolean",
 
 
     function PowerPoint:GenerateTables()
-            local maxAttempts = 800 //1200
-            local maxSizePer = 400
+            local maxAttempts = 300 
+            local maxSizePer = 75
             for i = 0, maxAttempts do 
                    table.insert(self.SpawnTableOne, FindFreeSpace( self:GetOrigin() ,4,70) ) // The room could be big. is 20 large enough? then attempts/size may be toggled
                    currentIndexLocation = nil//temp
@@ -109,30 +110,30 @@ discoEnabled = "boolean",
     local function GetMarineSpawnList(self) // Count should be based on size of location(s).
         local tospawn = {}
              -----------------------------------------------------------------------------------------------
-        if self.activePGs < 1 then
+        if self.activePGs < 1 and TresCheck(1, kPhaseGateCost) then
             table.insert(tospawn, kTechId.PhaseGate)
         end
         -------------------------------------------------------------------------------------------
-        if self.activeArmorys < 4 then 
+        if self.activeArmorys < 4 and TresCheck(1, kArmoryCost) then 
             table.insert(tospawn, kTechId.Armory)
         end
         ---------------------------------------------------------------------------------------------
-        if self.activeRobos < 1 then
+        if self.activeRobos < 1 and TresCheck(1, kRoboticsFactoryCost) then
             table.insert(tospawn, kTechId.RoboticsFactory)
         end
         ------------------------------------------------------------------------------------------------
-        if self.activeObs < 3 then
+        if self.activeObs < 3 and TresCheck(1, kPhaseGateCost) then
             table.insert(tospawn, kTechId.Observatory)
         end
         -----------------------------------------------------------------------------------------------
         if GetHasAdvancedArmory()  then
-            if self.activeProtos < 2 then
+            if self.activeProtos < 2 and TresCheck(1, kPrototypeLabCost) then
                 table.insert(tospawn, kTechId.PrototypeLab)
             end
         end
         -------------------------------------------------------------------------------------------------
 
-        if self.activeBatteries < 1 then //or count of locations with built power up lol
+        if self.activeBatteries < 1 and TresCheck(1, kSentryBatteryCost) then //or count of locations with built power up lol
           table.insert(tospawn, kTechId.SentryBattery)
         end
         ----------------------------------------------------------------------------------------------------
@@ -143,12 +144,12 @@ discoEnabled = "boolean",
     function PowerPoint:GetRandomSpawnEntity()
         /// self name has X number of X entity
         local location = GetLocationForPoint(self:GetOrigin())
-        Print("%s has %s Observatory", ToString(location.name),  ToString(self.activeObs))
-        Print("%s has %s Armory", ToString(location.name),  ToString(self.activeArmorys))
-        Print("%s has %s Robo", ToString(location.name),  ToString(self.activeRobos))
-        Print("%s has %s PG", ToString(location.name),  ToString(self.activePGs))
-        Print("%s has %s Proto", ToString(location.name),  ToString(self.activeProtos))
-
+        //Print("%s has %s Observatory", ToString(location.name),  ToString(self.activeObs))
+        //Print("%s has %s Armory", ToString(location.name),  ToString(self.activeArmorys))
+        //Print("%s has %s Robo", ToString(location.name),  ToString(self.activeRobos))
+        //Print("%s has %s PG", ToString(location.name),  ToString(self.activePGs))
+       // Print("%s has %s Proto", ToString(location.name),  ToString(self.activeProtos))
+        //Print("%s has %s Battery", ToString(location.name),  ToString(self.activeBatteries))
         return GetMarineSpawnList(self)
     end
 
