@@ -1,3 +1,5 @@
+Script.Load("lua/2019/Con_Vars.lua")
+
 local networkVars = { 
 
 lastWave = "time",
@@ -46,6 +48,40 @@ end
 	    GetImaginator().activeCrags  = GetImaginator().activeCrags- 1;  
 	  end
 end
+
+
+if Server then
+
+    function Crag:ManageCrags()
+    
+           self:InstructSpecificRules()
+           if self:GetCanTeleport() then    
+                local destination = findDestinationForAlienConst(self)
+                if destination then 
+                    self:TriggerTeleport(5, self:GetId(), FindFreeSpace(destination:GetOrigin(), 4), 0)
+                    return
+                end
+            end
+        
+    end
+
+
+end//server
+local origUpdate = Crag.OnUpdate 
+
+function Crag:OnUpdate(deltaTime)
+    origUpdate(self,deltaTime)
+     if Server then
+        if not self.manageCragsTime or self.manageCragsTime + kManageCragInterval <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ManageCrags()
+            end
+            self.manageCragsTime = Shared.GetTime()
+        end
+     end
+        
+end
+
 
 
 Shared.LinkClassToMap("Crag", Crag.kMapName, networkVars)

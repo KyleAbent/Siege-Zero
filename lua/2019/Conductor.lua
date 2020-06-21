@@ -110,14 +110,6 @@ if Server then
             end
             self.timeLastArcSiege = Shared.GetTime()
         end
-
-        if not self.timeLastNutrientMist or self.timeLastNutrientMist + kNutrientMistInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
-                self:DoMist()
-            end
-            self.timeLastNutrientMist = Shared.GetTime()
-       end
-            
             
         if not self.timeLastMarineBuffs or self.timeLastMarineBuffs + kMarineBuffInterval <= Shared.GetTime() then
             if GetIsImaginatorMarineEnabled() then 
@@ -133,21 +125,6 @@ if Server then
             self.phaseCannonTime = Shared.GetTime()
         end
         
-        if not self.manageMacTime or self.manageMacTime + kManageMacInterval <= Shared.GetTime() then
-            if GetIsImaginatorMarineEnabled() then
-                self:ManageMacs()
-            end
-            self.manageMacTime = Shared.GetTime()
-        end
-        
-        if not self.manageARCTime or self.manageARCTime + kManageArcInterval <= Shared.GetTime() then
-            if GetIsImaginatorMarineEnabled() then
-                self:ManageArcs()
-            end
-            self.manageARCTime = Shared.GetTime()
-        end
-        
-        
         if not self.manageScanTime or self.manageScanTime + kManageScanInterval <= Shared.GetTime() then
             if GetIsImaginatorMarineEnabled() then
                 self:ManageScans()
@@ -161,29 +138,7 @@ if Server then
             end
             self.manageDriferTime = Shared.GetTime()
         end
-       
-        
-        if not self.manageShadeTime or self.manageShadeTime + kManageShadeInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
-                self:ManageShades()
-            end
-            self.manageShadeTime = Shared.GetTime()
-        end
-        
-        if not self.manageCragsTime or self.manageCragsTime + kManageCragInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
-                self:ManageCrags()
-            end
-            self.manageCragsTime = Shared.GetTime()
-        end
-        
-        if not self.manageShiftsTime or self.manageShiftsTime + kManageShiftsInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
-                self:ManageShifts()
-            end
-            self.manageShiftsTime = Shared.GetTime()
-        end
-        
+
         if not self.manageWhipsTime or self.manageWhipsTime + kManageWhipsInterval <= Shared.GetTime() then
             if GetIsImaginatorAlienEnabled() then
                 self:ManageWhips()
@@ -324,18 +279,6 @@ function Conductor:AutoBuildResTowers()
     end
 end
 
-function Conductor:DoMist()
-   local hive = GetRandomHive()
-   local embryo = nil
-      if hive then
-         embryo = GetNearest(hive:GetOrigin(), "Embryo", 2,  function(ent) return ent:GetIsAlive()  end ) --not misted
-         if embryo then
-            CreateEntity(NutrientMist.kMapName,embryo:GetModelOrigin(), 2 )
-         end
-      end
-end
-
-
 local function BuildAllNodes(self)
 
           for _, powerpoint in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
@@ -427,46 +370,7 @@ function Conductor:ManageScans()
     end
 end
 
-function Conductor:ManageArcs()
 
-    local where = nil
-
-    if GetSiegeDoorOpen() and self.arcSiegeOrig ~= self:GetOrigin() then
-        //print("ManageArcs SiegeDoorOpen and arcSiegeOrig origin is at conductor origin")
-        where = self.arcSiegeOrig
-    end
-    
-    if where == self:GetOrigin() then
-        where = FindFreeSpace(GetRandomActivePower():GetOrigin(), math.random(2,4), math.random(8,24), false ) 
-    end
-    
-    if where == self:GetOrigin()  then
-        //print("Could not find spot for ARC!")
-        return
-    end
-    
-    for index, arc in ipairs(GetEntitiesForTeam("ARC", 1)) do
-        arc:Instruct(where) //Function for ARCS ! -- well .. no break on this one 
-    end
-
-end
-
-local function ManagePlayerWeld(who, where)
-    local player =  GetNearest(who:GetOrigin(), "Marine", 1, function(ent) return ent:GetIsAlive() end)
-    if player then
-        who:GiveOrder(   kTechId.FollowAndWeld, player:GetId(), player:GetOrigin(), nil, false, false)
-        SetDirectorLockedOnEntity(who)
-    end
-end
-local function ManagePowerMac(who, where)
-    print("ManagePowerMac")
-    local power =  GetNearest(who:GetOrigin(), "Powerpoint", 1, function(ent) return not ent:GetIsBuilt() and not GetIsInSiege(ent) end) //Not in siege and siege not open .. for not just not siege.
-    if power then
-        print("ManagePowerMac found power")
-        who:GiveOrder(kTechId.Move, nil, FindFreeSpace(power:GetOrigin(),4), nil, true, true)
-        SetDirectorLockedOnEntity(who)
-    end
-end
 local function ResearchMacIfPossible(who, where)
     local robo = FindNonBusyRoboticsFactory()
     if robo then
@@ -478,88 +382,7 @@ local function ResearchMacIfPossible(who, where)
     end
 end
 
-function Conductor:ManageMacs()
 
-   
-    local  macs = GetEntitiesForTeam( "MAC", 1 )
-    local isSetup = not GetFrontDoorOpen()
-    
-    if #macs == 0 then return end
-
-    for i = 1, #macs do
-        local mac = macs[i]
-        if not mac:GetHasOrder() then
-            local random = math.random(1,2)
-            if random == 1 or isSetup then
-                ManagePlayerWeld(mac, mac:GetOrigin())
-            else
-                ManagePowerMac(mac, mac:GetOrigin())
-            end
-            break//One at a time for perf? lol
-        end
-    end
-
-end
-
-function Conductor:ManageShades()
-    local shades = GetEntitiesForTeam( "Shade", 2 )
-    /////////////During Setup/////////////////////////////////////////
-
-    if not GetSiegeDoorOpen() then 
-
-        local count = 0
-        local max = math.random(1,4) //This is good and all but it sends 4 shades to the same spot sometimes lol ugh
-
-        for i = 1, #shades do
-            local shade = shades[i]
-            if shade:GetCanTeleport() then                                                
-                local nonCloaked = GetNearestMixin(shade:GetOrigin(), "Cloakable", 2, function(ent) return not ent:GetIsCloaked() and ent ~= self end)
-                if nonCloaked then
-                    shade:TriggerTeleport(5, shade:GetId(), FindFreeSpace(nonCloaked:GetOrigin(), 4), 0)
-                    count = count + 1
-                    if count == max then
-                        return
-                    end//needs a delay between next iteration ugh
-                end
-            end
-        end
-
-    end
-    
-    ////////////During Front Open//////////////////////////////////////
-
-    //Same as setup for now
-
-
-
-   /////////////////////During Siege////////////////////////////////////////
-    local random = math.random(1,4)
-    if not GetSiegeDoorOpen() then return end//for now just during siege
-
-    for i = 1, random do --maybe time delay ah
-        local hive = GetRandomHive()
-        local shade = table.random(shades)
-        if not shade then break end
-        //Maybe better to have the origin of scan search for shades within radius
-        if GetIsScanWithinRadius(shade:GetOrigin()) and self:GetIsInkAllowed() then
-            CreateEntity(ShadeInk.kMapName, shade:GetOrigin() + Vector(0, 0.2, 0), 2)
-            shade:TriggerEffects("shade_ink")
-            self:JustInkedNowSetTimer()
-        end
-        if shade.moving then
-            return 
-        end
-        if not GetIsPointWithinHiveRadius(shade:GetOrigin()) then
-            local hive = GetRandomHive()
-            if hive then
-                shade:GiveOrder(kTechId.Move, hive:GetId(), FindFreeSpace(hive:GetOrigin(), 4), nil, false, false) 
-                SetDirectorLockedOnEntity(shade)
-            end
-        end
-    end 
-    
-    
-end
 
 
 local function findFrontDestination(self,who)
@@ -570,70 +393,6 @@ local function findFrontDestination(self,who)
                     return false
 end
 
-local function findDestinationForAlienConst(self,who)
-    
-    if GetSiegeDoorOpen() and who:isa("Crag") or who:isa("Shift") and not GetIsPointWithinHiveRadiusForHealWave(who:GetOrigin()) then
-        local hive = GetRandomHive()
-        if hive then
-            return hive
-        end
-    end
-
-   
-        local inCombat = GetNearestMixin(who:GetOrigin(), "Combat", 2, function(ent) return ent:GetIsInCombat() end)
-        if inCombat then
-            return inCombat
-        end
-    
-end
-
-
-function Conductor:ManageCrags()
-
-local count = 0
---local max = math.random(1,4)
-local crags = GetEntitiesForTeam( "Crag", 2 )
-table.shuffle(crags)
-
-    for i = 1, #crags do 
-        local crag = crags[i]
-        crag:InstructSpecificRules()
-       if crag:GetCanTeleport() then    
-            local destination = findDestinationForAlienConst(self, crag)
-            if destination then 
-                crag:TriggerTeleport(5, crag:GetId(), FindFreeSpace(destination:GetOrigin(), 4), 0)
-                count = count + 1
-                --if not isSetup and count == max then
-                    return
-               -- end
-            end
-        end
-    end 
-    
-end
-
-function Conductor:ManageShifts()
-
-local count = 0
---local max = math.random(1,4)
-local crags = GetEntitiesForTeam( "Shift", 2 )
-table.shuffle(crags)
-
-    for i = 1, #crags do 
-        local crag = crags[i]
-        //crag:InstructSpecificRules()
-        if crag:GetCanTeleport() then
-            local destination = findDestinationForAlienConst(self, crag)
-            if destination then
-                crag:TriggerTeleport(5, crag:GetId(), FindFreeSpace(destination:GetOrigin(), 4), 0)
-                count = count + 1
-               -- if not isSetup and count == max then
-                    return
-               -- end
-            end
-        end
-     end
-end
 
 function Conductor:ManageCysts()
     --print("ManageCysts")
@@ -696,56 +455,15 @@ function Conductor:ManageWhips()
        end   
 
 end
-local function GiveDrifterOrder(who, where)
-
-    local structure =  GetNearestMixin(who:GetOrigin(), "Construct", 2, function(ent) return not ent:GetIsBuilt() and (not ent.GetCanAutoBuild or ent:GetCanAutoBuild()) and not ent:isa("Cyst")  end)
-    local player =  GetNearest(who:GetOrigin(), "Alien", 2, function(ent) return ent:GetIsInCombat() and ent:GetIsAlive() end) 
-
-    local target = nil
-
-    if structure then
-        target = structure
-    end
-
-    if player then
-        local chance = math.random(1,100)
-        local boolean = chance >= 70
-        if boolean then
-            who:GiveOrder(GetDrifterBuff(), player:GetId(), player:GetOrigin(), nil, false, false)
-            SetDirectorLockedOnEntity(who)
-            return
-        end
-    end
-
-    if  structure then      
-        who:GiveOrder(kTechId.Grow, structure:GetId(), structure:GetOrigin(), nil, false, false)
-        SetDirectorLockedOnEntity(who)
-        return  
-    end
-        
-end
 function Conductor:ManageDrifters()
+
     local hive = GetRandomHive()
-
-    if hive then
+    local Drifters = GetEntitiesForTeamWithinRange("Drifter", 2, self:GetOrigin(), 9999)
+    if hive and not #Drifters or #Drifters <=3  then
         local where = hive:GetOrigin()
-        local Drifters = GetEntitiesForTeamWithinRange("Drifter", 2, where, 9999)
-        if not #Drifters or #Drifters <=3 then
-            CreateEntity(Drifter.kMapName, FindFreeSpace(where), 2)
-        end
-
-        if #Drifters >= 1 then
-            for i = 1, #Drifters do
-                local drifter = Drifters[i]
-                if not drifter:GetHasOrder() then
-                    GiveDrifterOrder(drifter, drifter:GetOrigin())
-                    break
-                end
-            end
-        end
-
+         CreateEntity(Drifter.kMapName, FindFreeSpace(where), 2)
     end
-   
+
 end
 
 function Conductor:GetIsMapEntity()

@@ -1,6 +1,7 @@
 //Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19")Print("ARC19") 
 Script.Load("lua/ResearchMixin.lua")
 Script.Load("lua/RecycleMixin.lua")
+Script.Load("lua/2019/Con_Vars.lua")
 
 
 local networkVars = 
@@ -147,8 +148,46 @@ return origrules(self)
 end
 
 
+function ARC:ManageArcs()
+
+    local where = nil
+
+    if GetSiegeDoorOpen() and self.arcSiegeOrig ~= self:GetOrigin() then
+        //print("ManageArcs SiegeDoorOpen and arcSiegeOrig origin is at conductor origin")
+        where = GetImaginator().arcSiegeOrig
+    end
+    
+    if where == GetImaginator():GetOrigin() then //and power not in siege lol
+        where = FindFreeSpace(GetRandomActivePowerNotInSiege():GetOrigin(), math.random(2,4), math.random(8,24), false ) 
+    end
+    
+    if where == GetImaginator():GetOrigin()  then
+        //print("Could not find spot for ARC!")
+        return
+    end
+    
+     self:Instruct(where)
+
+
+end
+
 
 end//server
+
+local origUpdate = ARC.OnUpdate 
+
+function ARC:OnUpdate(deltaTime)
+    origUpdate(self,deltaTime)
+    if Server then
+        if not self.manageARCTime or self.manageARCTime + kManageArcInterval <= Shared.GetTime() then
+            if GetIsImaginatorMarineEnabled() then
+                self:ManageArcs()
+            end
+            self.manageARCTime = Shared.GetTime()
+        end
+    end
+        
+end
 
 
 

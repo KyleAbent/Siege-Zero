@@ -2,6 +2,27 @@
 --Here I try to write "English" translition to LUA that make code readable 
 --I don't think this is case of "Not Invented Here Syndrome" 
 --Alot of these functions mimic NS2Utility by having global functions to use
+
+
+function findDestinationForAlienConst(who)
+    
+    if GetSiegeDoorOpen() and who:isa("Crag") or who:isa("Shift") and not GetIsPointWithinHiveRadiusForHealWave(who:GetOrigin()) then
+        local hive = GetRandomHive()
+        if hive then
+            return hive
+        end
+    end
+
+
+    local inCombat = GetNearestMixin(who:GetOrigin(), "Combat", 2, function(ent) return ent:GetIsInCombat() end)
+    if inCombat then
+        return inCombat
+    end
+
+end
+
+
+
 function GetRange(who, where)
     local ArcFormula = (where - who:GetOrigin()):GetLengthXZ()
     return ArcFormula
@@ -378,14 +399,14 @@ function GetIsScanWithinRadius(point)
    if #scan >= 1 then return true end
    return false
 end
-function GetIsImaginatorMarineEnabled(point)     
+function GetIsImaginatorMarineEnabled()     
    local imaginator = GetImaginator()
    if imaginator then
     return imaginator:GetIsMarineEnabled()
    end
    return false
 end
-function GetIsImaginatorAlienEnabled(point)     
+function GetIsImaginatorAlienEnabled()     
    local imaginator = GetImaginator()
    if imaginator then
     return imaginator:GetIsAlienEnabled()
@@ -400,7 +421,7 @@ function FindFreeSpace(where, mindistance, maxdistance, infestreq)
            local capsuleHeight, capsuleRadius = GetTraceCapsuleFromExtents(extents)  
            //local spawnPoint = GetRandomSpawnForCapsule(capsuleHeight, capsuleRadius, where, mindistance, maxdistance, EntityFilterAll())
            local spawnPoint = GetRandomPointsWithinRadius(GetGroundAtPosition(where, nil, PhysicsMask.AllButPCs, extents), mindistance, maxdistance, 20, 1, 1, nil, validationFunc)
-            if #spawnPoint == 1 then
+            if #spawnPoint >= 1 then
                 spawnPoint = spawnPoint[1]
            end
         
@@ -541,6 +562,21 @@ function InsideLocation(ents, teamnum)
             end 
     end
     return origin
+end
+function GetRandomActivePowerNotInSiege()//bool notSiege, if notSiege true then.. prevent grabbing siege powerpoint..?
+      local powers = {}
+      for _, power in ientitylist(Shared.GetEntitiesWithClassname("PowerPoint")) do
+         if power:GetIsBuilt() and not power:GetIsDisabled() and not GetIsInSiege(power) then
+                if isSetup then // I don't want rooms be built which are yet to be undetermined in setup. ugh. players mark ownership by entering room. then spawn.
+                    if power:GetHasBeenToggledDuringSetup() then
+                        table.insert(powers,power)
+                    end
+                else
+                     table.insert(powers,power) //and not in siege ? Hm?
+                end
+          end
+        end
+        return table.random(powers)
 end
 function GetRandomActivePower()//bool notSiege, if notSiege true then.. prevent grabbing siege powerpoint..?
       local powers = {}

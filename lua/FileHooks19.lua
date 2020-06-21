@@ -91,8 +91,8 @@ ModLoader.SetupFileHook( "lua/Weapons/Marine/Flamethrower.lua", "lua/Weapons/Mar
 
 ModLoader.SetupFileHook( "lua/CommAbilities/Alien/Contamination.lua", "lua/CommAbilities/Alien/Contamination_Siege19.lua", "post" )
 
-ModLoader.SetupFileHook( "lua/Drifter.lua", "lua/Drifter_Stack.lua", "post" )
-ModLoader.SetupFileHook( "lua/MAC.lua", "lua/MAC_Stack.lua", "post" )
+ModLoader.SetupFileHook( "lua/Drifter.lua", "lua/Drifter_Siege19.lua", "post" )
+ModLoader.SetupFileHook( "lua/MAC.lua", "lua/MAC_Siege19.lua", "post" )
 
 ModLoader.SetupFileHook( "lua/NS2Gamerules.lua", "lua/NS2Gamerules_Siege19.lua", "post" )
 
