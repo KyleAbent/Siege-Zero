@@ -2,7 +2,7 @@
 --http://twitch.tv/kyleabent
 --https://github.com/KyleAbent/
 
-
+Script.Load("lua/2019/Con_Vars.lua")
 class 'Conductor' (Entity)
 Conductor.kMapName = "conductor"
 
@@ -94,33 +94,112 @@ if Server then
     
         if not GetGameStarted() then return end
         
-        if not self.timeLastArcSiege or self.timeLastArcSiege + 20 <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
-            if GetSiegeDoorOpen() and GetIsImaginatorMarineEnabled() then 
-            self:GetArcSpotForSiege()
-            self.timeLastArcSiege = Shared.GetTime()
+        
+        if not self.timeLastResourceTower or self.timeLastResourceTower + kResTowerInterval <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
+            if GetIsImaginatorMarineEnabled() or GetIsImaginatorAlienEnabled() then 
+                self:ResourceTowers()
             //So if 2 hives are dead and 1 is remaining then find new spot. If possible. Though 2 more will likely drop in the meantime haha.
             end
+                        self.timeLastResourceTower = Shared.GetTime()
+        end
+        
+        if not self.timeLastArcSiege or self.timeLastArcSiege + kIntervalForArcsDuringSiege <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
+            if GetSiegeDoorOpen() and GetIsImaginatorMarineEnabled() then 
+            self:GetArcSpotForSiege()
+            //So if 2 hives are dead and 1 is remaining then find new spot. If possible. Though 2 more will likely drop in the meantime haha.
+            end
+            self.timeLastArcSiege = Shared.GetTime()
         end
 
-        if not self.timeLastAutomations or self.timeLastAutomations + 8 <= Shared.GetTime() then
+        if not self.timeLastNutrientMist or self.timeLastNutrientMist + kNutrientMistInterval <= Shared.GetTime() then
             if GetIsImaginatorAlienEnabled() then
                 self:DoMist()
-                self.timeLastAutomations = Shared.GetTime()//Just incase? o_O
             end
-            if (GetIsImaginatorMarineEnabled() or GetIsImaginatorAlienEnabled()) then 
-                self:Automations(GetIsImaginatorMarineEnabled(),GetIsImaginatorAlienEnabled())
-                self.timeLastAutomations = Shared.GetTime()
+            self.timeLastNutrientMist = Shared.GetTime()
+       end
+            
+            
+        if not self.timeLastMarineBuffs or self.timeLastMarineBuffs + kMarineBuffInterval <= Shared.GetTime() then
+            if GetIsImaginatorMarineEnabled() then 
+                self:MarineBuffsDelay()
             end
+            self.timeLastMarineBuffs = Shared.GetTime()
         end
 
         if not self.phaseCannonTime or self.phaseCannonTime + math.random(27,90) <= Shared.GetTime() then
             if GetIsImaginatorAlienEnabled() then
                 self:ContaminationSpawnTimer()
-                self.phaseCannonTime = Shared.GetTime()
             end
+            self.phaseCannonTime = Shared.GetTime()
         end
-
+        
+        if not self.manageMacTime or self.manageMacTime + kManageMacInterval <= Shared.GetTime() then
+            if GetIsImaginatorMarineEnabled() then
+                self:ManageMacs()
+            end
+            self.manageMacTime = Shared.GetTime()
+        end
+        
+        if not self.manageARCTime or self.manageARCTime + kManageArcInterval <= Shared.GetTime() then
+            if GetIsImaginatorMarineEnabled() then
+                self:ManageArcs()
+            end
+            self.manageARCTime = Shared.GetTime()
+        end
+        
+        
+        if not self.manageScanTime or self.manageScanTime + kManageScanInterval <= Shared.GetTime() then
+            if GetIsImaginatorMarineEnabled() then
+                self:ManageScans()
+            end
+            self.manageScanTime = Shared.GetTime()
+        end
+        
+        if not self.manageDriferTime or self.manageDriferTime + kManageDrifterInterval <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ManageDrifters()
+            end
+            self.manageDriferTime = Shared.GetTime()
+        end
+       
+        
+        if not self.manageShadeTime or self.manageShadeTime + kManageShadeInterval <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ManageShades()
+            end
+            self.manageShadeTime = Shared.GetTime()
+        end
+        
+        if not self.manageCragsTime or self.manageCragsTime + kManageCragInterval <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ManageCrags()
+            end
+            self.manageCragsTime = Shared.GetTime()
+        end
+        
+        if not self.manageShiftsTime or self.manageShiftsTime + kManageShiftsInterval <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ManageShifts()
+            end
+            self.manageShiftsTime = Shared.GetTime()
+        end
+        
+        if not self.manageWhipsTime or self.manageWhipsTime + kManageWhipsInterval <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ManageWhips()
+            end
+            self.manageWhipsTime = Shared.GetTime()
+        end
+        
+        if not self.manageCystsTime or self.manageCystsTime + kManageCystsInterval <= Shared.GetTime() then
+            if GetIsImaginatorAlienEnabled() then
+                self:ManageCysts()
+            end
+            self.manageCystsTime = Shared.GetTime()
+        end
+  
     end
+    
 end//Server
 
 
@@ -167,19 +246,20 @@ function Conductor:ContaminationSpawnTimer()
          ChanceContaminationSpawn(self)
 end
 
-function Conductor:Automations(isMarineEnabled,isAlienEnabled)
+function Conductor:MarineBuffsDelay()
              
-            if isMarineEnabled then
+            if GetIsImaginatorMarineEnabled() then
               self:HandoutMarineBuffs()
             end
 
-             if isMarineEnabled or isAlienEnabled then
-               self:AutoBuildResTowers()
-             end
-
              return true
 end
+function Conductor:ResourceTowers()
 
+             if GetIsImaginatorMarineEnabled() or GetIsImaginatorAlienEnabled() then
+               self:AutoBuildResTowers()
+             end
+end
 local function PowerPointStuff(who, self)
     local location = GetLocationForPoint(who:GetOrigin())
     local powerpoint =  location and GetPowerPointForLocation(location.name)
@@ -366,7 +446,7 @@ function Conductor:ManageArcs()
     end
     
     for index, arc in ipairs(GetEntitiesForTeam("ARC", 1)) do
-        arc:Instruct(where) //Function for ARCS !
+        arc:Instruct(where) //Function for ARCS ! -- well .. no break on this one 
     end
 
 end
@@ -511,7 +591,7 @@ end
 function Conductor:ManageCrags()
 
 local count = 0
-local max = math.random(1,4)
+--local max = math.random(1,4)
 local crags = GetEntitiesForTeam( "Crag", 2 )
 table.shuffle(crags)
 
@@ -523,9 +603,9 @@ table.shuffle(crags)
             if destination then 
                 crag:TriggerTeleport(5, crag:GetId(), FindFreeSpace(destination:GetOrigin(), 4), 0)
                 count = count + 1
-                if not isSetup and count == max then
-                return
-                end
+                --if not isSetup and count == max then
+                    return
+               -- end
             end
         end
     end 
@@ -535,7 +615,7 @@ end
 function Conductor:ManageShifts()
 
 local count = 0
-local max = math.random(1,4)
+--local max = math.random(1,4)
 local crags = GetEntitiesForTeam( "Shift", 2 )
 table.shuffle(crags)
 
@@ -547,9 +627,9 @@ table.shuffle(crags)
             if destination then
                 crag:TriggerTeleport(5, crag:GetId(), FindFreeSpace(destination:GetOrigin(), 4), 0)
                 count = count + 1
-                if not isSetup and count == max then
+               -- if not isSetup and count == max then
                     return
-                end
+               -- end
             end
         end
      end
@@ -558,15 +638,18 @@ end
 function Conductor:ManageCysts()
     --print("ManageCysts")
     local cystsMax = 0
-    local doMax = math.random(1,4)
+    --local doMax = math.random(1,4)
      local noncysted = {}
      for _, infestable in ipairs(GetEntitiesWithMixinForTeam("InfestationTracker", 2)) do
         --print("found something to check for infestation")
-        if cystsMax < doMax and not infestable:GetGameEffectMask(kGameEffect.OnInfestation) then
+       -- if cystsMax < doMax and not infestable:GetGameEffectMask(kGameEffect.OnInfestation) then
+       if not infestable:GetGameEffectMask(kGameEffect.OnInfestation) then
             --print("Found something not on infestation")
             table.insert(noncysted, infestable)
             cystsMax = cystsMax + 1
-            if cystsMax == doMax then break end
+            --if cystsMax == doMax then
+                 break 
+           -- end
         end
      end
     
@@ -595,7 +678,7 @@ function Conductor:ManageWhips()
        local centralPower = GetRandomActivePower()
        local frontdoor = nil
        if isSetup then
-            frontdoor = GetNearest(self:GetOrigin(), "FrontDoor", 0) //self origin lol well ok it works
+            frontdoor = GetNearest(self:GetOrigin(), "FrontDoor") //self origin lol well ok it works
             if frontdoor then  
                centralPower = GetRoomPowerTryEnsureSetupAlienOwned(frontdoor)//here is where it can mess up and get the marine occupied room.
            end
@@ -606,7 +689,7 @@ function Conductor:ManageWhips()
             for index, whip in ientitylist(Shared.GetEntitiesWithClassname("Whip")) do
               if not whip:GetIsInCombat() and not whip.moving  then
                      whip:GiveOrder(kTechId.Move, centralPower:GetId(), origin, nil, false, false) 
-                     SetDirectorLockedOnEntity(nearestof)
+                     SetDirectorLockedOnEntity(whip)
                      -- CreatePheromone(kTechId.ThreatMarker,power:GetOrigin(), 2)  if get is time up then
                end 
            end

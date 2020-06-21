@@ -75,11 +75,6 @@ if Server then
             self:Imaginations()
         end
 
-        if not  self.timeLastConductions or self.timeLastConductions + 16 <= Shared.GetTime() then
-            self.timeLastConductions = Shared.GetTime()
-            self:Imaginations(true)
-        end
-
     end
 
 end //Server
@@ -358,24 +353,6 @@ local function GetMarineSpawnList(self)
     ----------------------------------------------------------------------------------------------------------
 end
 
-
-function Imaginator:DoConductors(marine, alien)
-    local con = GetConductor()
-    if marine then
-        con:ManageMacs()
-        con:ManageArcs()
-        con:ManageScans()
-    elseif alien then
-        con:ManageDrifters() 
-        con:ManageShades()
-        con:ManageCrags() 
-        con:ManageShifts()
-        con:ManageWhips()
-        con:ManageCysts()
-        //con:ManageEggsSetup()
-    end
-end
-
 function Imaginator:ActualFormulaMarine()
 
 
@@ -454,7 +431,7 @@ end
 function Imaginator:ShowWarningForToggleAliensOn(bool)
 
 end
-function Imaginator:Imaginations(doConduct) 
+function Imaginator:Imaginations() 
     if not GetGameStarted() then return end
     local Gamerules = GetGamerules()
     local team1Commander = Gamerules.team1:GetCommander()
@@ -477,19 +454,11 @@ function Imaginator:Imaginations(doConduct)
     end
     
     if self.marineenabled then
-        if doConduct then
-            self:DoConductors(true,false)
-        else
             self:MarineConstructs()
-        end
     end
     
     if self.alienenabled then
-        if doConduct then
-           self:DoConductors(false, true)
-        else
             self:AlienConstructs()
-        end
     end
 
     return true

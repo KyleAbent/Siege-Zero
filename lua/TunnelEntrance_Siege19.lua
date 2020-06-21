@@ -18,7 +18,7 @@ end
 
 if Server then
 
-
+    //This might need to be on a loop where if not connected then loop
     local orig_TunnelEntrance_OnConstructionComplete = TunnelEntrance.OnConstructionComplete
      function TunnelEntrance:OnConstructionComplete()
          orig_TunnelEntrance_OnConstructionComplete(self)
@@ -51,10 +51,12 @@ if Server then
                   //if tunnel ~= self and tunnel:GetIsBuilt() and (isEntrance and currentIsEntrance) and not tunnel:GetIsConnected() 
                    //and not ( GetLocationForPoint(self:GetOrigin()) == GetLocationForPoint(tunnel:GetOrigin()) )  then 
                    if tunnel ~= self and tunnel:GetIsBuilt() and not tunnel:GetIsConnected() and not ( GetLocationForPoint(self:GetOrigin()) == GetLocationForPoint(tunnel:GetOrigin()) )  then 
-                       match = tunnel
-                       start = true
-                       //print("Found match")
-                       break
+                       if ( GetOriginInHiveRoom( tunnel:GetOrigin() ) or GetOriginInHiveRoom( self:GetOrigin() ) ) then
+                            match = tunnel
+                           start = true
+                           //print("Found match")
+                           break
+                       end
                     end
                 end
             

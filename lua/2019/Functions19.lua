@@ -1,4 +1,7 @@
-
+--Kyle Abent :P 
+--Here I try to write "English" translition to LUA that make code readable 
+--I don't think this is case of "Not Invented Here Syndrome" 
+--Alot of these functions mimic NS2Utility by having global functions to use
 function GetRange(who, where)
     local ArcFormula = (where - who:GetOrigin()):GetLengthXZ()
     return ArcFormula
@@ -133,7 +136,12 @@ function GetHasChairInRoom(where)
     return false  
                 
 end
-
+function GetFrontDoorRoomForAlien()
+--Power Off room closest to door 
+end
+function GetFrontDoorRoomForMarine()
+--Power On room closest to door 
+end
 function GetIsInFrontDoorRoom(who)
 
     local door = GetNearest(who:GetOrigin(), "FrontDoor", nil,  function(ent) return ent:isa("FrontDoor") and GetLocationForPoint(who:GetOrigin()) == GetLocationForPoint(ent:GetOrigin()) end ) // or within range a room over?
