@@ -2,6 +2,11 @@
 --http://twitch.tv/kyleabent
 --https://github.com/KyleAbent/
 
+
+//If I wanted to lower the front timer, such as: having all tech at start, having each room built super fast without waiting 5-7 min, 
+//It would need a JSON from Shine for each map and each room location setting: Marine or Alien toggle who owns the room at the base start of game. 
+//This would allow faster construct placement . 
+
 Script.Load("lua/2019/Con_Vars.lua")
 class 'Conductor' (Entity)
 Conductor.kMapName = "conductor"
@@ -12,14 +17,26 @@ local networkVars =
     arcSiegeOrig = "vector",//Added a way in to reset this if there's two hives down and 1 hive outside of radius 
     //mostRecentCyst = "entityid"
     mostRecentCystOrig = "vector",
-    lastInk = "time" //Global in one location rather than local for every shade in many locations
+    lastInk = "time", //Global in one location rather than local for every shade in many locations
+    lastCrag = "time",
+    lastShift = "time",
+    lastShade = "time",
+    lastDrift = "time",
+    lastMac = "time",
+    lastArc = "time",
 }
 
 
 function Conductor:OnCreate()
     self.arcSiegeOrig = self:GetOrigin()
     self.mostRecentCystOrig = self:GetOrigin()
-    self.lastInk = 0
+    self.lastInk = Shared.GetTime()
+    self.lastCrag = Shared.GetTime()
+    self.lastShift = Shared.GetTime()
+    self.lastShade = Shared.GetTime()
+    self.lastDrift = Shared.GetTime()
+    self.lastMac = Shared.GetTime()
+    self.lastArc = Shared.GetTime()
     for i = 1, 8 do
         Print("Conductor created")
     end
@@ -31,6 +48,42 @@ function Conductor:GetIsInkAllowed()
 end
 function Conductor:JustInkedNowSetTimer()
     self.lastInk = Shared.GetTime()
+end
+function Conductor:GetIsCragMovementAllowed()
+    return GetIsTimeUp(self.lastCrag, kManageCragInterval)
+end
+function Conductor:JustMovedCragSetTimer()
+    self.lastCrag = Shared.GetTime()
+end
+function Conductor:GetIsShiftMovementAllowed()
+    return GetIsTimeUp(self.lastShift, kManageShiftsInterval)
+end
+function Conductor:JustMovedShiftSetTimer()
+    self.lastShift = Shared.GetTime()
+end
+function Conductor:GetIsShadeMovementAllowed()
+    return GetIsTimeUp(self.lastShade, kManageShadeInterval)
+end
+function Conductor:JustMovedShadeSetTimer()
+    self.lastShade = Shared.GetTime()
+end
+function Conductor:GetIsDriftMovementAllowed()
+    return GetIsTimeUp(self.lastDrift, kManageDrifterInterval)
+end
+function Conductor:JustMovedDriftSetTimer()
+    self.lastDrift = Shared.GetTime()
+end
+function Conductor:GetIsMacMovementAllowed()
+    return GetIsTimeUp(self.lastMac, kManageMacInterval)
+end
+function Conductor:JustMovedMacSetTimer()
+    self.lastMac = Shared.GetTime()
+end
+function Conductor:GetIsArcMovementAllowed()
+    return GetIsTimeUp(self.lastArc, kManageArcInterval)
+end
+function Conductor:JustMovedArcSetTimer()
+    self.lastArc = Shared.GetTime()
 end
 /*
 function Conductor:SetMostRecentCyst(cystid)
@@ -104,7 +157,7 @@ if Server then
         end
         
         if not self.timeLastArcSiege or self.timeLastArcSiege + kIntervalForArcsDuringSiege <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
-            if GetSiegeDoorOpen() and GetIsImaginatorMarineEnabled() then 
+            if self.arcSiegeOrig == self:GetOrigin() then 
             self:GetArcSpotForSiege()
             //So if 2 hives are dead and 1 is remaining then find new spot. If possible. Though 2 more will likely drop in the meantime haha.
             end
@@ -457,11 +510,12 @@ function Conductor:ManageWhips()
 end
 function Conductor:ManageDrifters()
 
-    local hive = GetRandomHive()
+    local hive = GetRandomHive() 
     local Drifters = GetEntitiesForTeamWithinRange("Drifter", 2, self:GetOrigin(), 9999)
-    if hive and not #Drifters or #Drifters <=3  then
+    if hive and not #Drifters or #Drifters <=3  and TresCheck(2, kDrifterCost) then
         local where = hive:GetOrigin()
-         CreateEntity(Drifter.kMapName, FindFreeSpace(where), 2)
+         local drifter = CreateEntity(Drifter.kMapName, FindFreeSpace(where), 2)
+         drifter:GetTeam():SetTeamResources(drifter:GetTeam():GetTeamResources() - kDrifterCost)
     end
 
 end

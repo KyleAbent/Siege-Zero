@@ -49,7 +49,7 @@ local siegeTime = 930
     elseif mapName == "ns1_climbsiege_2017b" then
         frontTime = 360
         siegeTime = 960
-    elseif mapName == "ns1_aliensiege_2017" then
+    elseif mapName == "ns1_aliensiege_2020a" then //string.find
         frontTime = 420
         siegeTime = 1020
     elseif mapName == "ns1_space_cow_ranch_siege_2018" then

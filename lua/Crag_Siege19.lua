@@ -73,8 +73,9 @@ function Crag:OnUpdate(deltaTime)
     origUpdate(self,deltaTime)
      if Server then
         if not self.manageCragsTime or self.manageCragsTime + kManageCragInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
+            if GetIsImaginatorAlienEnabled() and GetConductor():GetIsCragMovementAllowed() then
                 self:ManageCrags()
+                GetConductor():JustMovedCragSetTimer()
             end
             self.manageCragsTime = Shared.GetTime()
         end

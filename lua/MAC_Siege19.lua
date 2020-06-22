@@ -7,8 +7,9 @@ function MAC:OnUpdate(deltaTime)
     
     if Server then
         if not self.manageMacTime or self.manageMacTime + kManageMacInterval <= Shared.GetTime() then
-            if GetIsImaginatorMarineEnabled() then
+            if GetIsImaginatorMarineEnabled() and GetConductor():GetIsMacMovementAllowed() then
                 self:ManageMacs()
+                GetConductor():JustMovedMacSetTimer()
             end
             self.manageMacTime = Shared.GetTime()
         end

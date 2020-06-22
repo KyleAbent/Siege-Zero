@@ -40,8 +40,9 @@ function Shift:OnUpdate(deltaTime)
     origUpdate(self,deltaTime)
      if Server then
         if not self.manageShiftsTime or self.manageShiftsTime + kManageShiftsInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
+            if GetIsImaginatorAlienEnabled() and GetConductor():GetIsShiftMovementAllowed() then
                 self:ManageShifts()
+                 GetConductor():JustMovedShiftSetTimer()
             end
             self.manageShiftsTime = Shared.GetTime()
         end

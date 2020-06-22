@@ -1,7 +1,7 @@
-kIntervalForArcsDuringSiege = 22
+kIntervalForArcsDuringSiege = 8
 kMarineBuffInterval = 16
 kManageMacInterval = 12 -- maybe better to have the manage mac inside the mac lua and tell it there to manage itself. hm?
-kManageArcInterval = 14
+kManageArcInterval = 4
 kManageScanInterval = 9
 kManageDrifterInterval = 11
 kManageShadeInterval = 16

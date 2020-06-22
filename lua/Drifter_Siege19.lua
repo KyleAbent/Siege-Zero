@@ -6,10 +6,11 @@ function Drifter:OnUpdate(deltaTime)
     origUpdate(self,deltaTime)
     if Server then
         if not self.manageDriferTime or self.manageDriferTime + kManageDrifterInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
+            if GetIsImaginatorAlienEnabled() and GetConductor():GetIsDriftMovementAllowed() then
                 self:ManageDrifters()
+                GetConductor():JustMovedDriftSetTimer()
             end
-            self.manageDriferTime = Shared.GetTime()
+             self.manageDriferTime = Shared.GetTime()
         end
     end
         

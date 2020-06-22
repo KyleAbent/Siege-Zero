@@ -13,6 +13,8 @@ end
 
 
 function Shade:ManageShades()
+
+
     /////////////During Setup/////////////////////////////////////////
 
     if not GetSiegeDoorOpen() then 
@@ -28,21 +30,20 @@ function Shade:ManageShades()
     end
     
     ////////////During Front Open//////////////////////////////////////
-
-    //Same as setup for now
-
+    if GetFrontDoorOpen() then //Manage ShadeInk
+           //Maybe better to have the origin of scan search for shades within radius
+        if GetIsScanWithinRadius(self:GetOrigin()) and GetConductor():GetIsInkAllowed() then
+            CreateEntity(ShadeInk.kMapName, self:GetOrigin() + Vector(0, 0.2, 0), 2)
+            self:TriggerEffects("shade_ink")
+            GetConductor():JustInkedNowSetTimer()
+        end
+    end
 
 
    /////////////////////During Siege////////////////////////////////////////
     if not GetSiegeDoorOpen() then return end//for now just during siege
 
         local hive = GetRandomHive()
-        //Maybe better to have the origin of scan search for shades within radius
-        if GetIsScanWithinRadius(self:GetOrigin()) and GetConductor():GetIsInkAllowed() then
-            CreateEntity(ShadeInk.kMapName, self:GetOrigin() + Vector(0, 0.2, 0), 2)
-            self:TriggerEffects("shade_ink")
-            GetConductor():JustInkedNowSetTimer()
-        end
         if self.moving then
             return 
         end
@@ -63,10 +64,11 @@ function Shade:OnUpdate(deltaTime)
     origUpdate(self,deltaTime)
      if Server then
         if not self.manageShadeTime or self.manageShadeTime + kManageShadeInterval <= Shared.GetTime() then
-            if GetIsImaginatorAlienEnabled() then
+            if GetIsImaginatorAlienEnabled() and GetConductor():GetIsShadeMovementAllowed() then
                 self:ManageShades()
+                 GetConductor():JustMovedShadeSetTimer()
             end
-            self.manageShadeTime = Shared.GetTime()
+              self.manageShadeTime = Shared.GetTime()
         end
      end
         

@@ -152,16 +152,16 @@ function ARC:ManageArcs()
 
     local where = nil
 
-    if GetSiegeDoorOpen() and self.arcSiegeOrig ~= self:GetOrigin() then
+    if GetSiegeDoorOpen() and GetConductor().arcSiegeOrig ~= GetConductor():GetOrigin() then
         //print("ManageArcs SiegeDoorOpen and arcSiegeOrig origin is at conductor origin")
-        where = GetImaginator().arcSiegeOrig
+        where = GetConductor().arcSiegeOrig
     end
     
-    if where == GetImaginator():GetOrigin() then //and power not in siege lol
+    if not GetSiegeDoorOpen() then //and power not in siege lol
         where = FindFreeSpace(GetRandomActivePowerNotInSiege():GetOrigin(), math.random(2,4), math.random(8,24), false ) 
     end
     
-    if where == GetImaginator():GetOrigin()  then
+    if where == GetConductor():GetOrigin()  then
         //print("Could not find spot for ARC!")
         return
     end
@@ -180,10 +180,11 @@ function ARC:OnUpdate(deltaTime)
     origUpdate(self,deltaTime)
     if Server then
         if not self.manageARCTime or self.manageARCTime + kManageArcInterval <= Shared.GetTime() then
-            if GetIsImaginatorMarineEnabled() then
+            if GetIsImaginatorMarineEnabled() then --and GetConductor():GetIsArcMovementAllowed() then
                 self:ManageArcs()
+               --  GetConductor():JustMovedArcSetTimer()
             end
-            self.manageARCTime = Shared.GetTime()
+             self.manageARCTime = Shared.GetTime()
         end
     end
         
