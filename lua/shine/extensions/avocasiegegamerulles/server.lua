@@ -49,7 +49,7 @@ local siegeTime = 930
     elseif mapName == "ns1_climbsiege_2017b" then
         frontTime = 360
         siegeTime = 960
-    elseif mapName == "ns1_aliensiege_2020a" then //string.find
+    elseif mapName == "ns1_aliensiege_2020b" then //string.find
         frontTime = 420
         siegeTime = 1020
     elseif mapName == "ns1_space_cow_ranch_siege_2018" then
@@ -212,7 +212,23 @@ local function GiveTimersToAll()
 end
 ------------------------------------------------------------
 
-
+//Add timer on join if game started
+/*
+function Plugin:ClientConnect(Client)
+  if Client:GetIsVirtual() then return end
+    if GetGamerules():GetGameStarted() then
+    else
+        Shared.ConsoleCommand("sh_randomrr")
+        Shared.ConsoleCommand("sh_forceroundstart")
+        Shared.ConsoleCommand("sh_direct avo")
+         --  for i = 1, 11 do
+          --Shared.ConsoleCommand("addbot") --REMOVE ME! LOCAL ONLY LOL
+         --end
+       //Shared.ConsoleCommand("sh_randomrr")
+       
+   end
+end
+*/
 
 //Add timer on join if game started
 function Plugin:ClientConfirmConnect(Client)

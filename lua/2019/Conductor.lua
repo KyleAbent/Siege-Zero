@@ -385,8 +385,8 @@ local function KillAlienResRoomPower(self)
 end
 function Conductor:OnRoundStart()
            if Server then
-              BuildAllNodes(self)
-              KillAlienResRoomPower(self)
+            --  BuildAllNodes(self)
+            --  KillAlienResRoomPower(self)
             end
             
             //self.alienresroom = .... 

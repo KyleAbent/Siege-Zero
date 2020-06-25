@@ -35,11 +35,14 @@ function GetIsOriginInHiveRoom(point)
      
      for i = 1, #hives do  --better way to do this i know
      local hive = hives[i]
-     hivelocation = GetLocationForPoint(hive:GetOrigin())
-     break
+        //hivelocation = GetLocationForPoint(hive:GetOrigin())
+    // break with 4 tech points we dont want to break here.
+        if location ==  GetLocationForPoint(hive:GetOrigin()) then
+          return true
+         end // return here with loop dont break for 4th.
      end
      
-     if location == hivelocation then return true end
+     
      
      return false
      
