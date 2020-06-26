@@ -25,19 +25,19 @@ local function GetDoorLengthByMapName()
 mapName = Shared.GetMapName()
 local frontTime = 330
 local siegeTime = 930
-    if mapName == "ns1_siege007_2018" then
+    if string.find(mapName, "siege007") then 
         frontTime = 315
         siegeTime = 915
-    elseif mapName == "ns1_csiege_2018" then
+    elseif string.find(mapName, "csiege") then
         frontTime = 420
         siegeTime = 1080
-    elseif mapName == "ns1_darksiege_2016b" then
+    elseif string.find(mapName, "darksiege") then
         frontTime = 420
         siegeTime = 1020
-    elseif mapName == "ns1_supersiege_derp" then
+    elseif string.find(mapName, "supersiege") then
         frontTime = 360
         siegeTime = 1200
-    elseif mapName == "ns1_siege005_2015c" then
+    elseif string.find(mapName, "siege005") then
         frontTime = 360
         siegeTime = 1100
     //elseif mapName == "ns2_chopsiege_2015" then
@@ -46,66 +46,57 @@ local siegeTime = 930
     //elseif mapName == "ns1_geeksiege_2015" then
         //frontTime = 
         //siegeTime =
-    elseif mapName == "ns1_climbsiege_2017b" then
+    elseif string.find(mapName, "climbsiege") then
         frontTime = 360
         siegeTime = 960
-    elseif mapName == "ns1_aliensiege_2020b" then //string.find
+    elseif string.find(mapName, "aliensiege") then
         frontTime = 420
         siegeTime = 1020
-    elseif mapName == "ns1_space_cow_ranch_siege_2018" then
+    elseif string.find(mapName, "space_cow_ranch_siege") then
         frontTime = 330
         siegeTime = 930
-    elseif mapName == "ns1_herosiege_r2016" then
+    elseif string.find(mapName, "herosiege") then
         frontTime = 330
         siegeTime = 1020
-    elseif mapName == "ns1_beemersiege_2018a" then
+    elseif string.find(mapName, "beemersiege") then
         frontTime = 360
         siegeTime = 1020
-    elseif mapName == "ns1_birdsiege_2015" then
+    elseif string.find(mapName, "birdsiege") then
         frontTime = 315
         siegeTime = 915
-    elseif mapName == "ns1_birdsiege_2017" then
-        frontTime = 330
-        siegeTime = 960
-    elseif mapName == "ns1_epicsiege_2017" then
+    elseif string.find(mapName, "epicsiege") then
         frontTime = 360
         siegeTime = 1080
-    elseif mapName == "ns1_fortsiege_2018" then
+    elseif string.find(mapName, "fortsiege") then
         frontTime = 420
         siegeTime = 1020
-    elseif mapName == "ns1_lightsiege_2017" then
+    elseif string.find(mapName, "lightsiege") then
         frontTime = 330
         siegeTime = 930
-    elseif mapName == "ns2_trainsiege2_2018" then
+    elseif string.find(mapName, "trainsiege") then
         frontTime = 420
         siegeTime = 1140
-    elseif mapName == "ns1_msiege_2017" then
+    elseif string.find(mapName, "msiege") then
         frontTime = 330
         siegeTime = 1080
-    elseif mapName == "ns1_darksiege_2018" then
-        frontTime =  420
-        siegeTime = 1020
-    elseif mapName == "ns2_lobstersiege_2015" then
+    elseif string.find(mapName, "lobstersiege") then
         frontTime = 360
         siegeTime = 1020
-    elseif mapName == "ns1_siegeaholic_2017" then
+    elseif string.find(mapName, "siegeaholic") then
         frontTime = 420
         siegeTime = 1080
-    elseif mapName == "ns2_domesiege2_2015(1)" then
+    elseif string.find(mapName, "domesiege") then
         frontTime = 300
         siegeTime = 930
-    elseif mapName == "ns2_bunkersiege2_2015" then
+    elseif string.find(mapName, "bunkersiege") then
         frontTime = 330
         siegeTime = 1200
-    elseif mapName == "ns2_hivesiege6_2017" then
+    elseif string.find(mapName, "hivesiege") then
         frontTime = 330
         siegeTime = 960
-    elseif mapName == "ns1_powersiege_2017" then
+    elseif string.find(mapName, "powersiege") then
         frontTime = 360
         siegeTime = 960
-    elseif mapName == "ns1_herosiege_r2016" then
-        frontTime = 360
-        siegeTime = 1020
     end     
     print("mapName is %s", mapName)
     print("frontTime is %s",frontTime)
