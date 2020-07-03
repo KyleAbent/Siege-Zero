@@ -41,3 +41,8 @@ end
       
 	    GetImaginator().activeWhips  = GetImaginator().activeWhips - 1
 end
+
+
+function Whip:GetCanTeleportOverride()
+    return not self:GetIsInCombat()
+end

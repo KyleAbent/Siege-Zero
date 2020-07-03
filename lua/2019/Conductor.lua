@@ -24,6 +24,7 @@ local networkVars =
     lastDrift = "time",
     lastMac = "time",
     lastArc = "time",
+    lastDirection = "time",
 }
 
 
@@ -37,6 +38,7 @@ function Conductor:OnCreate()
     self.lastDrift = Shared.GetTime()
     self.lastMac = Shared.GetTime()
     self.lastArc = Shared.GetTime()
+    self.lastDirection = Shared.GetTime()
     for i = 1, 8 do
         Print("Conductor created")
     end
@@ -147,6 +149,13 @@ if Server then
     
         if not GetGameStarted() then return end
         
+        
+        if self.lastDirection + math.random(4,8) <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
+                if GetSetupConcluded() then
+                        self:DirectSpectators()
+                end   
+                        self.lastDirection = Shared.GetTime()     
+        end
         
         if not self.timeLastResourceTower or self.timeLastResourceTower + kResTowerInterval <= Shared.GetTime() then//and self.arcSiegeOrig == self:GetOrigin() then
             if GetIsImaginatorMarineEnabled() or GetIsImaginatorAlienEnabled() then 
@@ -261,6 +270,19 @@ function Conductor:MarineBuffsDelay()
             end
 
              return true
+end
+function Conductor:DirectSpectators()
+
+        for _, director in ientitylist(Shared.GetEntitiesWithClassname("AvocaSpectator")) do
+            if director:CanChange() then // well this is messy haha , why not have an active table? although would be constantly transition invalid and valid
+               local interestingPlayer = GetNearestMixin(director:GetOrigin(), "Combat", nil, function(ent) return ent:isa("Player") and ent:GetIsInCombat() end)
+                if interestingPlayer then
+                    local viporigin = interestingPlayer:GetOrigin()
+                     director:SetOrigin(viporigin)
+                     director:SetLockOnTarget(interestingPlayer:GetId())
+               end
+            end
+        end
 end
 function Conductor:ResourceTowers()
 
@@ -487,20 +509,24 @@ function Conductor:ManageWhips()
        //local random = math.random(1,4)
        local isSetup = not GetFrontDoorOpen() 
        --leave min around hive not all leave. hm.
-       local centralPower = GetRandomActivePower()
+       local focusTarget = GetWhipFocusTarget()--GetRandomActivePower()
        local frontdoor = nil
        if isSetup then
             frontdoor = GetNearest(self:GetOrigin(), "FrontDoor") //self origin lol well ok it works
             if frontdoor then  
-               centralPower = GetRoomPowerTryEnsureSetupAlienOwned(frontdoor)//here is where it can mess up and get the marine occupied room.
+               focusTarget = GetRoomPowerTryEnsureSetupAlienOwned(frontdoor)//here is where it can mess up and get the marine occupied room.
            end
        end
        
-       if centralPower then
-            local origin = FindFreeSpace(centralPower:GetOrigin(), 4) //dont loop this calculation
+       if focusTarget then
+            local origin = FindFreeSpace(focusTarget:GetOrigin(), 4) //dont loop this calculation
             for index, whip in ientitylist(Shared.GetEntitiesWithClassname("Whip")) do
               if not whip:GetIsInCombat() and not whip.moving  then
-                     whip:GiveOrder(kTechId.Move, centralPower:GetId(), origin, nil, false, false) 
+                     if focusTarget:isa("Contamination") and whip:GetCanTeleport() then
+                        whip:TriggerTeleport(5, whip:GetId(), FindFreeSpace(focusTarget:GetOrigin(), 4), 0)
+                     else    //Well this will move it to the contamination. May not be ideal. Lets try.
+                        whip:GiveOrder(kTechId.Move, focusTarget:GetId(), origin, nil, false, false)
+                     end
                      SetDirectorLockedOnEntity(whip)
                      -- CreatePheromone(kTechId.ThreatMarker,power:GetOrigin(), 2)  if get is time up then
                end 

@@ -112,7 +112,7 @@ local function DropWeaponsJetpacksExos(who, self)
     local randomize = {}
     
     local exosInRange = GetEntitiesForTeamWithinRange("Exosuit", 1, who:GetOrigin(), 99999999)
-    if #exosInRange < 6 then
+    if #exosInRange < 6 then --and TresCheck(1, 40) then
         table.insert(randomize, kTechId.DropExosuit)
     end
     
@@ -148,6 +148,8 @@ local function DropWeaponsJetpacksExos(who, self)
     local entry = table.random(randomize)
     
     entity = CreateEntityForTeam(entry, FindFreeSpace(who:GetOrigin(),4, kInfantryPortalAttachRange), 1)
+    
+    --entity:GetTeam():SetTeamResources(entity:GetTeam():GetTeamResources() - 40) //right now just the dropexo which is 40 tres -.-
     
      
 end

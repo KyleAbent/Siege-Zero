@@ -3,7 +3,17 @@
 --I don't think this is case of "Not Invented Here Syndrome" 
 --Alot of these functions mimic NS2Utility by having global functions to use
 
-
+function GetWhipFocusTarget()
+    local contam = nil
+    for _, currentContam in ientitylist(Shared.GetEntitiesWithClassname("Contamination")) do
+        contam = currentContam
+    end
+    if contam ~= nil then
+        return contam
+    else
+        return GetRandomActivePower()
+    end
+end
 function findDestinationForAlienConst(who)
     
     if GetSiegeDoorOpen() and who:isa("Crag") or who:isa("Shift") and not GetIsPointWithinHiveRadiusForHealWave(who:GetOrigin()) then
@@ -13,10 +23,19 @@ function findDestinationForAlienConst(who)
         end
     end
 
+    local random = math.random(1,2)
+    if random == 1 then
+        local inCombat = GetNearestMixin(who:GetOrigin(), "Combat", 2, function(ent) return ent:GetIsInCombat() end)
+        if inCombat then
+            return inCombat
+        end
+    else // Well this will only work if contam is up, and wont do anything otherwise. Like firing a blank.ActualAlienFormula
+            //Maybe say if contam is avail then add this option.
+        local contam = GetNearest(who:GetOrigin(), "Contamination", 2)
+        if contam then
+            return contam
+        end
 
-    local inCombat = GetNearestMixin(who:GetOrigin(), "Combat", 2, function(ent) return ent:GetIsInCombat() end)
-    if inCombat then
-        return inCombat
     end
 
 end
@@ -70,6 +89,13 @@ function GetPossibleAlienResRoomNode()
 end
 function SetDirectorLockedOnEntity(ent)
     if ent ~= nil then 
+    
+        if GetSetupConcluded() then
+            if HasMixin(ent, "Construct") or ent:isa("Drifter") or ent:isa("MAC") then
+                return
+            end
+        end
+        
         for _, director in ientitylist(Shared.GetEntitiesWithClassname("AvocaSpectator")) do
             if director:CanChange() then // well this is messy haha , why not have an active table? although would be constantly transition invalid and valid
                  local viporigin = ent:GetOrigin()

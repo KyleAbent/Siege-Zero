@@ -22,6 +22,11 @@ if Server then
 
 end
 
+
+function Shift:GetCanTeleportOverride()
+    return not self:GetIsInCombat()
+end
+
 function Shift:ManageShifts()
 
     if self:GetCanTeleport() then

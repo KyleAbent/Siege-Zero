@@ -83,6 +83,8 @@ function Crag:OnUpdate(deltaTime)
         
 end
 
-
+function Crag:GetCanTeleportOverride()
+    return not self:GetIsInCombat()
+end
 
 Shared.LinkClassToMap("Crag", Crag.kMapName, networkVars)

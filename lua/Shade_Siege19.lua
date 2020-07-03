@@ -73,3 +73,8 @@ function Shade:OnUpdate(deltaTime)
      end
         
 end
+
+
+function Shade:GetCanTeleportOverride()
+    return not self:GetIsInCombat()
+end
